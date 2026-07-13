@@ -1,0 +1,25 @@
+# =============================================================================
+# docker-compose.yml — локальный запуск second_brain (тот же образ, что на amvera)
+# =============================================================================
+# Использование:
+#   cp env.example .env   # заполните ключи
+#   docker compose up --build
+#
+# Данные сохраняются в именованном томе second_brain_data (аналог /opt/data
+# на amvera). Telegram работает в режиме long polling — порты пробрасывать
+# не требуется.
+# =============================================================================
+services:
+  bot:
+    build: .
+    image: second_brain
+    container_name: second_brain
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - second_brain_data:/opt/data
+    # gateway run наследуется из CMD образа.
+
+volumes:
+  second_brain_data:

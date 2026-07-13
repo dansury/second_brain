@@ -1,0 +1,71 @@
+# =============================================================================
+# Справочный пример итогового config.yaml (hermes)
+# =============================================================================
+# ВНИМАНИЕ: этот файл — только для наглядности. На реальном запуске
+# docker/entrypoint.sh собирает $HERMES_HOME/config.yaml автоматически из
+# переменных окружения (ключи НЕ хранятся в git). Здесь показано, что примерно
+# получится при настройках по умолчанию (OpenRouter + Yandex-эмбеддинги).
+# =============================================================================
+
+model:
+  provider: openrouter
+  default: "anthropic/claude-opus-4.6"
+
+# Провайдеры для команды /model. «yandex» — кастомный OpenAI-совместимый
+# провайдер: появляется в пикере /model и в `/model --provider yandex`.
+providers:
+  yandex:
+    name: "Yandex Cloud (YandexGPT)"
+    base_url: "https://llm.api.cloud.yandex.net/v1"
+    key_env: YANDEX_CLOUD_API_KEY
+    default_model: "gpt://<YANDEX_CLOUD_FOLDER_ID>/yandexgpt/latest"
+    discover_models: false
+    models:
+      - "gpt://<YANDEX_CLOUD_FOLDER_ID>/yandexgpt/latest"
+      - "gpt://<YANDEX_CLOUD_FOLDER_ID>/yandexgpt-lite/latest"
+
+# Голос: Yandex SpeechKit как основной STT/TTS (command-провайдеры).
+stt:
+  provider: yandex
+  providers:
+    yandex:
+      type: command
+      language: "ru-RU"
+      command: "/opt/second_brain/speechkit/yc_stt.sh {input_path} {output_path} {language}"
+voice:
+  auto_tts: true
+tts:
+  provider: yandex
+  providers:
+    yandex:
+      type: command
+      voice: "alena"
+      command: "/opt/second_brain/speechkit/yc_tts.sh {input_path} {output_path} {format} {voice}"
+
+# Вторичная LLM-роль: модель суммаризатора авто-сжатия контекста.
+auxiliary:
+  compression:
+    summary_provider: openrouter
+    summary_model: "google/gemini-3-flash-preview"
+
+mcp_servers:
+  # Долговременная память. Эмбеддинги идут в Yandex Cloud через
+  # OpenAI-совместимый эндпоинт (emb://<folder>/text-search-doc/latest).
+  gbrain:
+    command: gbrain
+    args: [serve]
+    enabled: true
+    timeout: 120
+    env:
+      GBRAIN_HOME: "/opt/data/gbrain"
+      HOME: "/opt/data"
+      OPENAI_BASE_URL: "https://llm.api.cloud.yandex.net/v1"
+      OPENAI_API_KEY: "<YANDEX_CLOUD_API_KEY>"
+      EMBEDDING_MODEL: "openai:emb://<YANDEX_CLOUD_FOLDER_ID>/text-search-doc/latest"
+
+  # Граф знаний по коду (включён по умолчанию; граф зашит в образ).
+  grafify:
+    command: "/opt/tools/gfx/bin/python"
+    args: ["-m", "graphify.serve", "/opt/second_brain/graphify-out/graph.json"]
+    enabled: true
+    timeout: 120

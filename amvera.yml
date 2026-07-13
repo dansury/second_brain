@@ -1,0 +1,34 @@
+# =============================================================================
+# amvera.yml — деплой second_brain на amvera.ru
+# =============================================================================
+# Собирается из Dockerfile в корне репозитория. Постоянный том amvera
+# монтируется в /opt/data (там хранятся состояние hermes, мозг gbrain, граф).
+#
+# Переменные окружения (TELEGRAM_BOT_TOKEN, OPENROUTER_API_KEY,
+# YANDEX_CLOUD_API_KEY, YANDEX_CLOUD_FOLDER_ID и т.д.) задаются в интерфейсе
+# amvera: сервис → «Переменные» / «Секреты». НЕ коммитьте их в репозиторий.
+#
+# По умолчанию бот работает в режиме long polling — публичный порт не нужен.
+# Для режима webhook раскомментируйте containerPort и задайте TELEGRAM_WEBHOOK_URL
+# (используйте выданный amvera домен https://<app>-<user>.amvera.io).
+# =============================================================================
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+    version: latest
+
+build:
+  dockerfile: Dockerfile
+  skip: false
+
+run:
+  # Постоянное хранилище: том amvera → HERMES_HOME образа.
+  persistenceMount: /opt/data
+
+  # Запуск Telegram-шлюза hermes (совпадает с CMD в Dockerfile).
+  command: gateway
+  args: run
+
+  # --- Только для режима webhook (иначе не нужно) ---
+  # containerPort: 8080

@@ -1,0 +1,26 @@
+# Секреты и локальное окружение
+.env
+.env.*
+!env.example
+
+# Данные рантайма
+/opt/data/
+data/
+gbrain/
+*.log
+
+# Граф Grafify: коммитим сам граф, но не локальный кэш/анализ
+graphify-out/cache/
+graphify-out/.graphify_analysis.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Node / bun
+node_modules/
+bun.lockb
+
+# OS
+.DS_Store
