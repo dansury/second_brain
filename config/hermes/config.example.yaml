@@ -1,0 +1,34 @@
+# =============================================================================
+# Справочный пример итогового config.yaml (hermes)
+# =============================================================================
+# ВНИМАНИЕ: этот файл — только для наглядности. На реальном запуске
+# docker/entrypoint.sh собирает $HERMES_HOME/config.yaml автоматически из
+# переменных окружения (ключи НЕ хранятся в git). Здесь показано, что примерно
+# получится при настройках по умолчанию (OpenRouter + Yandex-эмбеддинги).
+# =============================================================================
+
+model:
+  provider: openrouter
+  default: "anthropic/claude-opus-4.6"
+
+mcp_servers:
+  # Долговременная память. Эмбеддинги идут в Yandex Cloud через
+  # OpenAI-совместимый эндпоинт (emb://<folder>/text-search-doc/latest).
+  gbrain:
+    command: gbrain
+    args: [serve]
+    enabled: true
+    timeout: 120
+    env:
+      GBRAIN_HOME: "/opt/data/gbrain"
+      HOME: "/opt/data"
+      OPENAI_BASE_URL: "https://llm.api.cloud.yandex.net/v1"
+      OPENAI_API_KEY: "<YANDEX_CLOUD_API_KEY>"
+      EMBEDDING_MODEL: "openai:emb://<YANDEX_CLOUD_FOLDER_ID>/text-search-doc/latest"
+
+  # Граф знаний по коду (включается при GRAFIFY_ENABLED=true и наличии графа).
+  # grafify:
+  #   command: "/opt/tools/gfx/bin/python"
+  #   args: ["-m", "graphify.serve", "/opt/data/graphify-out/graph.json"]
+  #   enabled: true
+  #   timeout: 120
