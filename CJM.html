@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CJM — Второй мозг: дневник-консультант</title>
+<style>
+  :root{
+    --bg:#f6f4f0; --surface:#ffffff; --ink:#1c1a17; --sub:#6b6459;
+    --line:#e6e1d8; --accent:#6b5b95; --accent-ink:#ffffff;
+    --good:#3f7d5c; --bad:#b1483f; --chip:#efe9dd; --shadow:0 1px 2px rgba(28,26,23,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141312; --surface:#1d1b19; --ink:#f1ede6; --sub:#a89f92;
+      --line:#332f2a; --accent:#b6a4e0; --accent-ink:#1c1a17;
+      --good:#7fd6ab; --bad:#f19a90; --chip:#2a2622; --shadow:0 1px 2px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141312; --surface:#1d1b19; --ink:#f1ede6; --sub:#a89f92;
+    --line:#332f2a; --accent:#b6a4e0; --accent-ink:#1c1a17;
+    --good:#7fd6ab; --bad:#f19a90; --chip:#2a2622; --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+  :root[data-theme="light"]{
+    --bg:#f6f4f0; --surface:#ffffff; --ink:#1c1a17; --sub:#6b6459;
+    --line:#e6e1d8; --accent:#6b5b95; --accent-ink:#ffffff;
+    --good:#3f7d5c; --bad:#b1483f; --chip:#efe9dd; --shadow:0 1px 2px rgba(28,26,23,.06);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:0 0 64px;
+  }
+  header{
+    padding:28px 18px 18px; max-width:640px; margin:0 auto;
+  }
+  header h1{font-size:1.5rem; margin:0 0 6px; letter-spacing:-.01em;}
+  header p{margin:0; color:var(--sub); font-size:.95rem;}
+  .badge{
+    display:inline-block; margin-top:12px; font-size:.78rem; color:var(--sub);
+    background:var(--chip); border-radius:999px; padding:4px 10px;
+  }
+  main{max-width:640px; margin:0 auto; padding:0 18px;}
+  .progress{
+    position:sticky; top:0; z-index:5; background:var(--bg);
+    padding:10px 18px; margin:0 -18px 8px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; gap:10px; font-size:.78rem; color:var(--sub);
+  }
+  .progress .track{flex:1; height:4px; background:var(--chip); border-radius:2px; overflow:hidden;}
+  .progress .fill{height:100%; width:0%; background:var(--accent); transition:width .25s ease;}
+
+  .journey{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    margin:14px 0; box-shadow:var(--shadow); overflow:hidden;
+  }
+  .journey > summary{
+    list-style:none; cursor:pointer; padding:16px 16px; display:flex; gap:12px; align-items:flex-start;
+  }
+  .journey > summary::-webkit-details-marker{display:none}
+  .num{
+    flex:none; width:30px; height:30px; border-radius:50%; background:var(--chip);
+    color:var(--ink); font-size:.85rem; font-weight:700; display:flex; align-items:center; justify-content:center;
+  }
+  .journey[open] > summary .num{background:var(--accent); color:var(--accent-ink);}
+  .summary-text{flex:1; min-width:0;}
+  .summary-text .title{font-weight:600; font-size:1rem;}
+  .summary-text .sub{color:var(--sub); font-size:.85rem; margin-top:2px;}
+  .chev{flex:none; color:var(--sub); transform:rotate(0deg); transition:transform .2s ease; margin-top:4px;}
+  .journey[open] .chev{transform:rotate(90deg);}
+
+  .journey-body{padding:0 16px 18px 58px;}
+  .steps{list-style:none; margin:0; padding:0; position:relative;}
+  .steps::before{
+    content:""; position:absolute; left:9px; top:4px; bottom:4px; width:2px; background:var(--line);
+  }
+  .step{position:relative; padding:0 0 16px 26px;}
+  .step:last-child{padding-bottom:0}
+  .step::before{
+    content:""; position:absolute; left:2px; top:4px; width:16px; height:16px; border-radius:50%;
+    background:var(--surface); border:2px solid var(--accent);
+  }
+  .step .who{font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; color:var(--sub); margin-bottom:2px;}
+  .step .what{font-size:.94rem;}
+  .step .layer{
+    display:inline-block; margin-top:6px; font-size:.72rem; color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 14%, transparent); border-radius:6px; padding:2px 7px;
+  }
+  .fb{display:flex; gap:8px; margin-top:6px;}
+  .fb span{
+    font-size:.8rem; border-radius:8px; padding:3px 8px; background:var(--chip); color:var(--sub);
+  }
+  .fb .up{color:var(--good)} .fb .down{color:var(--bad)}
+
+  .note{
+    margin-top:14px; padding:10px 12px; background:var(--chip); border-radius:10px;
+    font-size:.84rem; color:var(--sub);
+  }
+  .note b{color:var(--ink)}
+
+  .toolbar{
+    max-width:640px; margin:0 auto 6px; padding:0 18px; display:flex; gap:10px;
+  }
+  button.tbtn{
+    flex:1; padding:9px 10px; border-radius:10px; border:1px solid var(--line);
+    background:var(--surface); color:var(--ink); font-size:.85rem; cursor:pointer;
+  }
+  footer{max-width:640px; margin:24px auto 0; padding:0 18px; color:var(--sub); font-size:.78rem;}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>CJM · «Второй мозг» — дневник-консультант</h1>
+  <p>Приложение к <a href="./ТЗ.md">ТЗ.md</a> (issue #1). Вертикальная карта — листайте вниз,
+  раскрывайте карточки по одной, по мере чтения.</p>
+  <span class="badge" id="theme-badge">тема: системная</span>
+</header>
+
+<div class="progress">
+  <span id="progress-label">0 / 9 сценариев открыто</span>
+  <span class="track"><span class="fill" id="progress-fill"></span></span>
+</div>
+
+<div class="toolbar">
+  <button class="tbtn" id="expand-all">Раскрыть все</button>
+  <button class="tbtn" id="collapse-all">Свернуть все</button>
+</div>
+
+<main id="journeys">
+
+  <details class="journey">
+    <summary>
+      <span class="num">1</span>
+      <span class="summary-text">
+        <div class="title">Онбординг источника</div>
+        <div class="sub">Канал-дневник или чат «Избранное» → бот-админ</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Добавляет бота администратором в канал-дневник, либо в личный чат с самим собой / пересылает из «Избранного».</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Подтверждает подключение источника, объясняет, что будет читать новые посты автоматически.</div><span class="layer">слой 0 · роутинг</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">С этого момента каждый новый пост/сообщение источника уходит в конвейер слоёв 1–9.</div></li>
+      </ol>
+      <div class="note"><b>Важно:</b> один источник = один владелец. Групповые чаты с несколькими людьми — вне v1.</div>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">2</span>
+      <span class="summary-text">
+        <div class="title">Обычная дневниковая запись</div>
+        <div class="sub">Текст в канале/чате → структурированная заметка в Obsidian</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Пишет пост: «Сегодня встретился с Иваном, обсуждали переход в новый проект».</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Распознаёт персону «Иван» → ищет похожих в базе персон.</div><span class="layer">слой 2 · персоны</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Если найдено несколько похожих Иванов — спрашивает: «Это тот же Иван Петров (коллега), что уже в базе?»</div></li>
+        <li class="step"><div class="who">Пользователь</div><div class="what">Подтверждает или уточняет — «нет, это другой, Иван Смирнов, сосед».</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Классифицирует запись, линтует markdown, создаёт/обновляет <code>People/…</code> и пишет запись в <code>Journal/…</code>.</div><span class="layer">слои 3, 8 · классификация, lint</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Присылает короткое резюме, что сохранил, с кнопками.</div>
+          <div class="fb"><span class="up">👍</span><span class="down">👎</span></div>
+          <span class="layer">слой 9 · обратная связь</span>
+        </li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">3</span>
+      <span class="summary-text">
+        <div class="title">Голос / видео / видео-кружок</div>
+        <div class="sub">Автоматическое распознавание речи → дневниковая запись</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Записывает голосовое или видео-кружок вместо текста.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Распознаёт речь (Yandex SpeechKit STT) и прогоняет LLM-очистку текста от слов-паразитов и оговорок.</div><span class="layer">слой 1 · транскрибация</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Дальше — как обычная текстовая запись (сценарий 2): персоны → классификация → lint → фидбек.</div></li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">4</span>
+      <span class="summary-text">
+        <div class="title">Сомнение / решение → консультация</div>
+        <div class="sub">Многослойный прогноз удачности решения</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">«Сомневаюсь, стоит ли соглашаться на переход в новый проект с Иваном».</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Классифицирует как «решение/сомнение», извлекает суть: варианты, дедлайн, вовлечённых персон.</div><span class="layer">слой 4a</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Собирает факторы «за/против» и риски, в том числе связанные с Иваном (история совместных решений).</div><span class="layer">слой 4b</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Ищет похожие прошлые записи-решения в vault и памяти (gbrain) — с исходами, если они помечены.</div><span class="layer">слой 4c</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Строит три точки зрения — оптимистичную, пессимистичную, реалистичную.</div><span class="layer">слой 4d</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Синтезирует финальную рекомендацию с явными ссылками на прецеденты и факторы.</div><span class="layer">слой 4e</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Присылает прогноз пользователю.</div>
+          <div class="fb"><span class="up">👍</span><span class="down">👎</span></div>
+        </li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">5</span>
+      <span class="summary-text">
+        <div class="title">Присланный документ</div>
+        <div class="sub">Уточняющие вопросы прежде, чем сохранить</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Пересылает боту файл (договор, справка, скан, что угодно).</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Спрашивает: «Что это за документ? С чем/кем он связан?» — не классифицирует молча.</div><span class="layer">слой 5</span></li>
+        <li class="step"><div class="who">Пользователь</div><div class="what">Отвечает: «Это договор аренды, на год, с ...».</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Сохраняет резюме в <code>Documents/</code>, линкует персон/решения, если применимо.</div><span class="layer">слой 8</span></li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">6</span>
+      <span class="summary-text">
+        <div class="title">Фото с людьми</div>
+        <div class="sub">Кто есть кто, позы, мизансцена, эмоции</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Присылает фото, на котором есть люди.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">По каждому распознанному лицу уточняет «кто есть кто» (сверка с <code>People/</code>, как в сценарии 2).</div><span class="layer">слой 6</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Анализирует позы, взаимное расположение людей, что происходит, выражения лиц.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Присылает анализ, предлагает редактуру формулировок.</div>
+          <div class="fb"><span class="up">👍</span><span class="down">👎</span></div>
+        </li>
+        <li class="step"><div class="who">Бот</div><div class="what">Итог (с учётом правок пользователя) сохраняется в <code>Photos/</code>, 👎-причины — в <code>Wiki/Feedback.md</code>.</div></li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">7</span>
+      <span class="summary-text">
+        <div class="title">Фото с рукописным текстом</div>
+        <div class="sub">Чей почерк, расшифровка, память начертаний</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Присылает фото страницы с рукописным текстом.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Спрашивает: «Чей это почерк?» — варианты: мой / другого человека → чей именно.</div><span class="layer">слой 7</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Распознаёт текст, присылает расшифровку.</div>
+          <div class="fb"><span class="up">👍</span><span class="down">👎 + правка</span></div>
+        </li>
+        <li class="step"><div class="who">Бот</div><div class="what">Запоминает особенности начертания букв автора для будущих расшифровок (<code>Handwriting/…</code>).</div></li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">8</span>
+      <span class="summary-text">
+        <div class="title">Оценка ответа и смена модели</div>
+        <div class="sub">👎 → причина → wiki → список моделей по цене</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Ставит 👎 под любым ответом бота.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Спрашивает: «Что не так?» — свободный текст.</div><span class="layer">слой 9</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Записывает причину + текущую модель в <code>Wiki/Feedback.md</code>.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Предлагает список моделей текущего провайдера, отсортированный по возрастанию цены токена, с командой <code>/model &lt;id&gt;</code>.</div></li>
+        <li class="step"><div class="who">Пользователь</div><div class="what">Выбирает модель или оставляет текущую.</div></li>
+      </ol>
+    </div>
+  </details>
+
+  <details class="journey">
+    <summary>
+      <span class="num">9</span>
+      <span class="summary-text">
+        <div class="title">Дизамбигуация персоны</div>
+        <div class="sub">Сквозной под-сценарий слоя 2 — раскрыт отдельно</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Бот</div><div class="what">Нечёткий поиск по <code>People/*.md</code> даёt score совпадения имени/роли/алиасов.</div></li>
+        <li class="step"><div class="who">Бот (правило)</div><div class="what">score &gt; 0.92 — тихо считает той же персоной; 0.6–0.92 — переспрашивает пользователя; &lt; 0.6 — молча создаёт новую персону.</div></li>
+        <li class="step"><div class="who">Пользователь</div><div class="what">В зоне переспроса — подтверждает или указывает, что это другой человек (с ролью).</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Создаёт/обновляет <code>People/Имя_Фамилия_(роль).md</code>, проставляет <code>[[wiki-ссылку]]</code> в исходной записи.</div></li>
+      </ol>
+      <div class="note">Пороги — открытый вопрос ТЗ (§13.2), нужно подтверждение продукт-владельца.</div>
+    </div>
+  </details>
+
+</main>
+
+<footer>
+  Второй мозг · CJM v1 · см. <a href="./ТЗ.md">ТЗ.md</a> и <a href="./Promts/README.md">Promts/</a> ·
+  сгенерировано по issue <a href="https://github.com/dansury/second_brain/issues/1">#1</a>
+</footer>
+
+<script>
+(function(){
+  var details = Array.prototype.slice.call(document.querySelectorAll('.journey'));
+  var fill = document.getElementById('progress-fill');
+  var label = document.getElementById('progress-label');
+
+  function update(){
+    var open = details.filter(function(d){ return d.open; }).length;
+    var pct = Math.round((open/details.length)*100);
+    fill.style.width = pct + '%';
+    label.textContent = open + ' / ' + details.length + ' сценариев открыто';
+  }
+  details.forEach(function(d){ d.addEventListener('toggle', update); });
+  update();
+
+  document.getElementById('expand-all').addEventListener('click', function(){
+    details.forEach(function(d){ d.open = true; }); update();
+  });
+  document.getElementById('collapse-all').addEventListener('click', function(){
+    details.forEach(function(d){ d.open = false; }); update();
+  });
+
+  // Progressive reveal: open the first card by default so it reads well cold.
+  if (details[0]) details[0].open = true;
+  update();
+})();
+</script>
+
+</body>
+</html>
