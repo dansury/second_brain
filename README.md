@@ -11,13 +11,15 @@ Telegram-бот — личный «второй мозг» на связке т�
 | [**hermes-agent**](https://github.com/NousResearch/hermes-agent) | Ядро агента и Telegram-шлюз. LLM через OpenRouter. | Базовый образ `nousresearch/hermes-agent`, запуск `gateway run` |
 | [**gbrain**](https://github.com/garrytan/gbrain) | Долговременная память (семантический поиск по заметкам/фактам). | MCP-сервер `gbrain serve`; эмбеддинги — Yandex Cloud |
 | [**Grafify**](https://github.com/LuaAccess/Grafify) | Граф знаний по коду (включён). | MCP-сервер `graphify.serve` + скилл `/graphify` для Claude Code |
+| **secondbrain** (`secondbrain/`) | Дневник-консультант: Obsidian-хранилище, персоны, детерминированный линт, feedback, прайсинг моделей. См. [**ТЗ.md**](./ТЗ.md) и [**CJM.html**](./CJM.html). | MCP-сервер `node secondbrain/src/cli.mjs serve`, нулевые внешние зависимости |
 
 ```
 Telegram ──> hermes-agent (Telegram gateway)
                   │  LLM   ─────────────> OpenRouter API  (агент + суммаризатор)
                   │  voice ─> SpeechKit ─> Yandex Cloud API (STT + TTS)
                   │  MCP   ─> gbrain ────> Yandex Cloud API (эмбеддинги памяти)
-                  └─ MCP   ─> Grafify (граф кода, включён)
+                  │  MCP   ─> Grafify (граф кода, включён)
+                  └─ MCP   ─> secondbrain (дневник, персоны, линт, feedback)
         Выбор модели/провайдера агента — команда /model в Telegram.
         Всё в одном контейнере на amvera.ru, данные — в томе /opt/data
 ```
@@ -159,6 +161,20 @@ pip install "graphifyy[mcp]"     # если ещё не установлен
 make graph                        # пересобрать graphify-out/graph.json
 ```
 
+## Дневник-консультант (secondbrain)
+
+Полное техническое задание — [`ТЗ.md`](./ТЗ.md), путь пользователя (Customer
+Journey Map, читается с телефона) — [`CJM.html`](./CJM.html), промты всех
+слоёв анализа — [`Promts/`](./Promts/). Реализация технического слоя —
+[`secondbrain/`](./secondbrain/) (см. его README про инструменты и запуск
+самопроверки `node test/run.mjs`). Статус: реализован фундамент M1 (Obsidian-
+хранилище, персоны, детерминированный линт, feedback-журнал, прайсинг
+моделей) — LLM-слои L0–L6 (текстовый пайплайн, прогноз, вложения) описаны в
+ТЗ и достраиваются поверх этого фундамента (roadmap — ТЗ.md §12).
+
+Включён по умолчанию (`SECONDBRAIN_ENABLED=true`), хранилище — на
+персистентном томе (`OBSIDIAN_VAULT_PATH=/opt/data/vault`).
+
 ## Файлы репозитория
 
 | Файл | Назначение |
@@ -168,6 +184,8 @@ make graph                        # пересобрать graphify-out/graph.js
 | `docker/entrypoint.sh` | Собирает `config.yaml` hermes из переменных окружения на старте |
 | `docker-compose.yml` | Локальный запуск (тот же образ) |
 | `speechkit/yc_stt.sh`, `yc_tts.sh` | Yandex SpeechKit как STT/TTS (command-провайдеры hermes) |
+| `ТЗ.md`, `CJM.html`, `Promts/` | Техническое задание дневника-консультанта, путь пользователя, промты слоёв анализа |
+| `secondbrain/` | MCP-сервер дневника-консультанта (Obsidian, персоны, линт, feedback, прайсинг) |
 | `env.example` | Все переменные с комментариями |
 | `config/hermes/config.example.yaml` | Как выглядит итоговый конфиг hermes |
 | `.github/workflows/build.yml` | CI: фактическая сборка образа на пуш/PR |

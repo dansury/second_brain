@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CJM — «Второй мозг»: путь пользователя</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --fg: #1b1a17;
+    --muted: #6b6558;
+    --card: #ffffff;
+    --border: #e4ddd0;
+    --accent: #8a5a2b;
+    --accent-fg: #ffffff;
+    --bot: #eef2ee;
+    --user: #f3ece0;
+    --good: #2f6b3f;
+    --bad: #8a2b2b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16140f;
+      --fg: #ede7db;
+      --muted: #a89d87;
+      --card: #201d17;
+      --border: #3a352a;
+      --accent: #d9a15b;
+      --accent-fg: #1b1a17;
+      --bot: #202a22;
+      --user: #2a251b;
+      --good: #7ec98f;
+      --bad: #e08a8a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16140f; --fg: #ede7db; --muted: #a89d87; --card: #201d17;
+    --border: #3a352a; --accent: #d9a15b; --accent-fg: #1b1a17;
+    --bot: #202a22; --user: #2a251b; --good: #7ec98f; --bad: #e08a8a;
+  }
+  :root[data-theme="light"] {
+    --bg: #faf9f6; --fg: #1b1a17; --muted: #6b6558; --card: #ffffff;
+    --border: #e4ddd0; --accent: #8a5a2b; --accent-fg: #ffffff;
+    --bot: #eef2ee; --user: #f3ece0; --good: #2f6b3f; --bad: #8a2b2b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    line-height: 1.45;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1.1rem 1rem 4rem;
+  }
+  header.top {
+    padding: 0.4rem 0 1rem;
+    text-align: center;
+  }
+  header.top h1 {
+    font-size: 1.3rem;
+    margin: 0 0 0.3rem;
+  }
+  header.top p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  .progress {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--bg);
+    padding: 0.5rem 0 0.7rem;
+    display: flex;
+    gap: 4px;
+  }
+  .progress i {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background .2s;
+  }
+  .progress i.done { background: var(--accent); }
+
+  .stage {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+    margin-bottom: 0.7rem;
+    overflow: hidden;
+  }
+  .stage > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    font-size: 0.98rem;
+  }
+  .stage > summary::-webkit-details-marker { display: none; }
+  .stage .num {
+    flex: 0 0 auto;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-fg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  .stage .title { flex: 1; }
+  .stage .chev {
+    color: var(--muted);
+    transition: transform .18s ease;
+    flex: 0 0 auto;
+  }
+  .stage[open] > summary .chev { transform: rotate(90deg); }
+  .stage .body {
+    padding: 0 1rem 1rem;
+    font-size: 0.92rem;
+  }
+  .stage .body p.lead {
+    color: var(--muted);
+    margin-top: 0;
+  }
+  .bubble {
+    border-radius: 12px;
+    padding: 0.55rem 0.7rem;
+    margin: 0.4rem 0;
+    font-size: 0.88rem;
+  }
+  .bubble.bot { background: var(--bot); }
+  .bubble.user { background: var(--user); margin-left: 1.2rem; }
+  .bubble b.who {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    color: var(--muted);
+    margin-bottom: 0.15rem;
+  }
+  .fb {
+    display: inline-flex;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+  }
+  .fb span {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.85rem;
+  }
+  ul.steps { margin: 0.4rem 0; padding-left: 1.1rem; }
+  ul.steps li { margin-bottom: 0.3rem; }
+  .tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    margin: 0 0.25rem 0.25rem 0;
+  }
+  .layers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.5rem 0;
+  }
+  .layer {
+    font-size: 0.72rem;
+    background: var(--bot);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.15rem 0.4rem;
+  }
+  .promt-link {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-decoration: none;
+    margin-top: 0.3rem;
+  }
+  .note {
+    border-left: 3px solid var(--accent);
+    padding: 0.4rem 0.6rem;
+    background: var(--bot);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.85rem;
+    margin: 0.5rem 0;
+  }
+  .controls {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 0.5rem 0 1.2rem;
+  }
+  .controls button {
+    font: inherit;
+    font-size: 0.82rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--fg);
+    cursor: pointer;
+  }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 1.5rem;
+  }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Путь пользователя — «Второй мозг»</h1>
+    <p>Приложение к <code>ТЗ.md</code>. 11 этапов, раскрываются по одному —
+      листайте вниз и открывайте следующий, когда прочитали текущий.</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+  <div class="controls">
+    <button type="button" id="expandAll">Раскрыть всё</button>
+    <button type="button" id="collapseAll">Свернуть всё</button>
+  </div>
+
+  <details class="stage" open>
+    <summary><span class="num">1</span><span class="title">Подключение источника</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Пользователь выбирает, как бот будет получать данные — один раз, при настройке.</p>
+      <div class="bubble user"><b class="who">Пользователь</b>Добавляет бота администратором в свой канал-дневник, либо в чат «с самим собой» / отдельный приватный чат — либо просто планирует писать боту напрямую.</div>
+      <div class="bubble bot"><b class="who">Бот</b>Подтверждает доступ, объясняет: «Я буду читать новые сообщения здесь и складывать их в базу. Документы, фото и голос — тоже понимаю.»</div>
+      <span class="tag">разовая настройка</span><span class="tag">TELEGRAM_ALLOWED_USERS</span>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">2</span><span class="title">Дневниковая запись (текст/голос/видео)</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Основной, «пассивный» поток — бот читает канал/чат сам, без запроса пользователя.</p>
+      <ul class="steps">
+        <li>Новое сообщение в канале/чате — текст, голос или видео.</li>
+        <li>Голос → распознаётся Yandex SpeechKit; видео → звук распознаётся, ключевые кадры оцениваются vision-слоем.</li>
+        <li>Текст проходит L0/L1 (приём и черновая классификация).</li>
+      </ul>
+      <div class="layers"><span class="layer">L0 приём</span><span class="layer">L1 классификация</span></div>
+      <a class="promt-link" href="./Promts/00_ingest_route.md">→ Promts/00_ingest_route.md</a>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">3</span><span class="title">Разговор с ботом напрямую</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">«Активный» канал — пользователь сам пишет о происходящем и о сомнениях.</p>
+      <div class="bubble user"><b class="who">Пользователь</b>Сомневаюсь, стоит ли соглашаться на переход к Ивану в проект — сроки жёсткие.</div>
+      <div class="bubble bot"><b class="who">Бот</b>Записываю как решение-с-сомнением. Уточню пару деталей и посмотрю, что было похожего раньше.</div>
+      <p>Тот же L0/L1, но бот может задавать уточняющие вопросы в диалоге, а не только фиксировать.</p>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">4</span><span class="title">Кто есть кто: персоны</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Прежде чем зафиксировать запись, бот сверяет упомянутых людей с базой.</p>
+      <div class="bubble bot"><b class="who">Бот</b>Иван из этой записи — тот же <code>Иван_Петров_(начальник)</code>, что уже есть в базе, или другой человек?</div>
+      <div class="bubble user"><b class="who">Пользователь</b>Тот же.</div>
+      <ul class="steps">
+        <li>Новый персонаж → создаётся <code>20_People/Имя_Фамилия_(роль).md</code>, бот уточняет роль.</li>
+        <li>Существующий → проставляется <code>[[Имя_Фамилия_(роль)]]</code> в тексте.</li>
+      </ul>
+      <div class="layers"><span class="layer">L2 NER</span><span class="layer">L2.5 дизамбигуация</span></div>
+      <a class="promt-link" href="./Promts/01_ner_person_extraction.md">→ Promts/01_ner_person_extraction.md</a>
+      <a class="promt-link" href="./Promts/02_person_disambiguation.md">→ Promts/02_person_disambiguation.md</a>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">5</span><span class="title">Документ</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Пользователь присылает файл — бот не угадывает, а спрашивает.</p>
+      <div class="bubble user"><b class="who">Пользователь</b>[Присылает PDF]</div>
+      <div class="bubble bot"><b class="who">Бот</b>Что это за документ? Похоже на договор — я прав? К какому периоду/человеку он относится?</div>
+      <p>После ответа — заметка в <code>10_Documents/</code>, оригинал в <code>_attachments/</code>, линт.</p>
+      <a class="promt-link" href="./Promts/07_document_clarifying_questions.md">→ Promts/07_document_clarifying_questions.md</a>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">6</span><span class="title">Фото с людьми</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Бот сначала спрашивает, кто на фото, затем анализирует.</p>
+      <div class="bubble bot"><b class="who">Бот</b>На фото трое. Кто есть кто (слева направо)?</div>
+      <div class="bubble user"><b class="who">Пользователь</b>Иван, Мария, я.</div>
+      <div class="bubble bot"><b class="who">Бот</b>Разбор: позы напряжённые, Иван смотрит в сторону от группы — похоже на неловкий момент разговора. <span class="fb"><span>👍</span><span>👎</span></span></div>
+      <a class="promt-link" href="./Promts/08_photo_people_analysis.md">→ Promts/08_photo_people_analysis.md</a>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">7</span><span class="title">Фото с рукописным текстом</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Расшифровка почерка, с накоплением профиля почерка по человеку.</p>
+      <div class="bubble bot"><b class="who">Бот</b>Чей это почерк — ваш или другого человека (кого)?</div>
+      <div class="bubble user"><b class="who">Пользователь</b>Мой.</div>
+      <div class="bubble bot"><b class="who">Бот</b>Расшифровка: «...». Верно? <span class="fb"><span>👍</span><span>👎</span></span></div>
+      <p>Особенности начертания сохраняются в карточке персонажа для будущих расшифровок.</p>
+      <a class="promt-link" href="./Promts/09_handwriting_transcription.md">→ Promts/09_handwriting_transcription.md</a>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">8</span><span class="title">Извлечение решения и прогноз</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Ядро «консультанта»: структурируем решение и смотрим на него с нескольких сторон.</p>
+      <ul class="steps">
+        <li>L3 — вычленяет решение/сомнение/ставку из текста.</li>
+        <li>L4 — несколько независимых взглядов: исторические параллели (через <code>gbrain.search</code>), риски, ценности, «адвокат дьявола».</li>
+        <li>L5 — синтез: один ответ с явной неопределённостью и ссылками на первоисточники.</li>
+      </ul>
+      <div class="layers"><span class="layer">L3 извлечение</span><span class="layer">L4 прогноз</span><span class="layer">L5 синтез</span></div>
+      <a class="promt-link" href="./Promts/03_decision_doubt_extraction.md">→ Promts/03_decision_doubt_extraction.md</a>
+      <a class="promt-link" href="./Promts/04_multiperspective_forecast.md">→ Promts/04_multiperspective_forecast.md</a>
+      <a class="promt-link" href="./Promts/05_advisor_synthesis.md">→ Promts/05_advisor_synthesis.md</a>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">9</span><span class="title">Ответ бота + 👍👎</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Любой ответ — с кнопками обратной связи.</p>
+      <div class="bubble bot"><b class="who">Бот</b>Похоже на решение с умеренным риском (60% — «скорее оправданно»), потому что в прошлом похожая ситуация с [[Иван_Петров_(начальник)]] закончилась... <span class="fb"><span>👍</span><span>👎</span></span></div>
+      <p class="note">👎 → бот спрашивает, что не так, пишет это в wiki-журнал вместе с именем модели.</p>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">10</span><span class="title">Смена модели по стоимости</span><span class="chev">›</span></summary>
+    <div class="body">
+      <div class="bubble bot"><b class="who">Бот</b>Что не так с прогнозом?</div>
+      <div class="bubble user"><b class="who">Пользователь</b>Слишком уверенно звучит, для такой скудной истории.</div>
+      <div class="bubble bot"><b class="who">Бот</b>Записал. Хотите попробовать другую модель? По возрастанию цены за токен: <code>google/gemini-3-flash</code> → <code>anthropic/claude-sonnet-5</code> → <code>anthropic/claude-opus-4.8</code>.</div>
+      <a class="promt-link" href="./Promts/06_feedback_followup.md">→ Promts/06_feedback_followup.md</a>
+    </div>
+  </details>
+
+  <details class="stage">
+    <summary><span class="num">11</span><span class="title">Wiki, лог и ревью промтов</span><span class="chev">›</span></summary>
+    <div class="body">
+      <p class="lead">Замыкаем петлю обучения на уровне самого бота (не только пользователя).</p>
+      <ul class="steps">
+        <li><code>Promts/_wiki/feedback.md</code> — журнал всех 👍/👎 с именем модели и слоем.</li>
+        <li><code>Promts/_wiki/model_stats.md</code> — агрегация: какая модель/слой чаще получают 👎.</li>
+        <li>Раз в период (или по запросу) — предложение поправить конкретный промт слоя L1–L5 на основе журнала.</li>
+      </ul>
+      <p class="note">Это данные бота о самом себе — отдельно от дневника пользователя, но в той же базе.</p>
+    </div>
+  </details>
+
+  <footer>
+    См. также <a href="./ТЗ.md">ТЗ.md</a> — полное техническое задание,
+    и <a href="./Promts/">Promts/</a> — промты всех слоёв.
+  </footer>
+</div>
+
+<script>
+(function () {
+  var stages = Array.prototype.slice.call(document.querySelectorAll('.stage'));
+  var progress = document.getElementById('progress');
+  stages.forEach(function () {
+    var i = document.createElement('i');
+    progress.appendChild(i);
+  });
+  function refresh() {
+    var bars = progress.children;
+    stages.forEach(function (s, idx) {
+      bars[idx].classList.toggle('done', s.open);
+    });
+  }
+  stages.forEach(function (s) { s.addEventListener('toggle', refresh); });
+  refresh();
+
+  document.getElementById('expandAll').addEventListener('click', function () {
+    stages.forEach(function (s) { s.open = true; });
+  });
+  document.getElementById('collapseAll').addEventListener('click', function () {
+    stages.forEach(function (s, idx) { s.open = idx === 0; });
+  });
+})();
+</script>
+</body>
+</html>

@@ -9,6 +9,13 @@ data/
 gbrain/
 *.log
 
+# secondbrain: Obsidian-хранилище пользователя (реальные дневниковые данные,
+# см. ТЗ.md §9.3) — никогда не коммитится. Promts/_wiki/*.md — это шаблоны
+# формата (см. Promts/README.md), они лежат в другом каталоге и не подпадают
+# под правило ниже.
+/vault/
+vault-data/
+
 # Граф Grafify: коммитим сам граф, но не локальный кэш/анализ
 graphify-out/cache/
 graphify-out/.graphify_analysis.json

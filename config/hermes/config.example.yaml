@@ -69,3 +69,13 @@ mcp_servers:
     args: ["-m", "graphify.serve", "/opt/second_brain/graphify-out/graph.json"]
     enabled: true
     timeout: 120
+
+  # Дневник-консультант: Obsidian-хранилище, персоны, линт, feedback, прайсинг
+  # моделей (см. ТЗ.md §9). Нулевые зависимости — только Node.js из базового образа.
+  secondbrain:
+    command: node
+    args: ["/opt/second_brain/secondbrain/src/cli.mjs", "serve"]
+    enabled: true
+    timeout: 60
+    env:
+      OBSIDIAN_VAULT_PATH: "/opt/data/vault"

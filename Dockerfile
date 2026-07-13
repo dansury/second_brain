@@ -48,6 +48,13 @@ COPY graphify-out/ /opt/second_brain/graphify-out/
 COPY scripts/ /opt/second_brain/scripts/
 RUN chmod +x /opt/second_brain/scripts/*.sh
 
+# --- secondbrain: MCP-сервер дневника-консультанта (см. ТЗ.md §9) -----------
+# Нулевые зависимости (только встроенные модули Node.js, уже есть в базовом
+# образе) — просто копируется, без npm/bun install. Промты слоёв анализа —
+# рядом, в Promts/ (читаются secondbrain в рантайме, см. src/layers.mjs).
+COPY secondbrain/ /opt/second_brain/secondbrain/
+COPY Promts/ /opt/second_brain/Promts/
+
 # --- Хук инициализации: собрать config.yaml из окружения до старта сервисов --
 # s6-overlay выполняет /etc/cont-init.d/* от root перед запуском gateway.
 COPY docker/entrypoint.sh /etc/cont-init.d/50-second-brain

@@ -1,0 +1,17 @@
+{
+  "name": "secondbrain",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP-сервер second_brain: Obsidian-хранилище дневника, персоны, детерминированный линт, feedback-журнал, прайсинг моделей. См. ../ТЗ.md §9 и roadmap M1 в §12.",
+  "type": "module",
+  "bin": {
+    "secondbrain": "./src/cli.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node test/run.mjs"
+  },
+  "dependencies": {}
+}

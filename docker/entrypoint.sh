@@ -37,6 +37,11 @@ GRAFIFY_ENABLED="${GRAFIFY_ENABLED:-true}"
 GRAFIFY_GRAPH_PATH="${GRAFIFY_GRAPH_PATH:-/opt/second_brain/graphify-out/graph.json}"
 GRAFIFY_PYTHON="${GRAFIFY_PYTHON:-/opt/tools/gfx/bin/python}"
 
+# secondbrain: MCP-сервер дневника-консультанта (см. ТЗ.md §9).
+SECONDBRAIN_ENABLED="${SECONDBRAIN_ENABLED:-true}"
+SECONDBRAIN_DIR="${SECONDBRAIN_DIR:-/opt/second_brain/secondbrain}"
+OBSIDIAN_VAULT_PATH="${OBSIDIAN_VAULT_PATH:-${HERMES_HOME}/vault}"
+
 YANDEX_OPENAI_BASE_URL="${YANDEX_OPENAI_BASE_URL:-https://llm.api.cloud.yandex.net/v1}"
 YANDEX_EMBEDDING_MODEL="${YANDEX_EMBEDDING_MODEL:-text-search-doc}"
 
@@ -196,9 +201,23 @@ grafify_block() {
 EOF
 }
 
+# --- MCP: secondbrain (дневник-консультант, ТЗ.md §9) ------------------------
+secondbrain_block() {
+  [[ "${SECONDBRAIN_ENABLED}" == "true" ]] || return 0
+  cat <<EOF
+  secondbrain:
+    command: node
+    args: ["${SECONDBRAIN_DIR}/src/cli.mjs", "serve"]
+    enabled: true
+    timeout: 60
+    env:
+      OBSIDIAN_VAULT_PATH: "${OBSIDIAN_VAULT_PATH}"
+EOF
+}
+
 # --- Сборка config.yaml ------------------------------------------------------
 log "Пишу ${CONFIG} (провайдер=${LLM_PROVIDER}, модель=${LLM_MODEL})"
-mcp_out="$(gbrain_block; grafify_block)"
+mcp_out="$(gbrain_block; grafify_block; secondbrain_block)"
 {
   provider_block
   providers_block
@@ -222,6 +241,17 @@ if [[ "${GBRAIN_ENABLED}" == "true" ]]; then
     fi
   else
     log "Бинарь gbrain не найден в образе — проверьте сборку Dockerfile."
+  fi
+fi
+
+# --- Инициализация хранилища secondbrain (идемпотентно) ---------------------
+if [[ "${SECONDBRAIN_ENABLED}" == "true" ]]; then
+  if command -v node >/dev/null 2>&1; then
+    log "Инициализирую Obsidian-хранилище secondbrain в ${OBSIDIAN_VAULT_PATH}"
+    OBSIDIAN_VAULT_PATH="${OBSIDIAN_VAULT_PATH}" node "${SECONDBRAIN_DIR}/src/cli.mjs" init 2>&1 | sed 's/^/[secondbrain] /' || \
+      log "secondbrain init завершился с ошибкой — хранилище создастся при первом обращении."
+  else
+    log "node не найден в образе — secondbrain MCP пропущен (проверьте сборку Dockerfile)."
   fi
 fi
 

@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "note": "Статические ориентировочные цены (USD за 1000 input-токенов) на момент написания ТЗ (см. ТЗ.md §5). M2: заменить/дополнить живым запросом к OpenRouter GET /api/v1/models (pricing.prompt) для openrouter; для yandex цены берутся из официального прайс-листа Yandex Cloud вручную, т.к. публичного API цен нет.",
+    "updated": "2026-07-13"
+  },
+  "openrouter": [
+    { "id": "google/gemini-3-flash-preview", "prompt_usd_per_1k": 0.0002 },
+    { "id": "anthropic/claude-haiku-4.5", "prompt_usd_per_1k": 0.001 },
+    { "id": "anthropic/claude-sonnet-5", "prompt_usd_per_1k": 0.003 },
+    { "id": "anthropic/claude-opus-4.8", "prompt_usd_per_1k": 0.015 }
+  ],
+  "yandex": [
+    { "id": "gpt://<folder_id>/yandexgpt-lite/latest", "prompt_usd_per_1k": 0.0002 },
+    { "id": "gpt://<folder_id>/yandexgpt/latest", "prompt_usd_per_1k": 0.0012 }
+  ]
+}
