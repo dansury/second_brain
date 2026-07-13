@@ -1,0 +1,82 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1783959634.733494,
+    "ast_hash": "56a0681304ffecaa92a66f9ed2d3aba2",
+    "semantic_hash": "56a0681304ffecaa92a66f9ed2d3aba2"
+  },
+  ".specify/init-options.json": {
+    "mtime": 1783952600.842826,
+    "ast_hash": "e72f6d4e5a9ff55e6687b112de2261a0",
+    "semantic_hash": "e72f6d4e5a9ff55e6687b112de2261a0"
+  },
+  ".specify/integration.json": {
+    "mtime": 1783952600.8477075,
+    "ast_hash": "e1d86a0c55aedb0851b41eb50115b605",
+    "semantic_hash": "e1d86a0c55aedb0851b41eb50115b605"
+  },
+  ".specify/integrations/claude.manifest.json": {
+    "mtime": 1783952600.8477075,
+    "ast_hash": "ab055f2b13fb5f89f37ba60116d75ead",
+    "semantic_hash": "ab055f2b13fb5f89f37ba60116d75ead"
+  },
+  ".specify/integrations/speckit.manifest.json": {
+    "mtime": 1783952600.84823,
+    "ast_hash": "1554978faabcebe1f98218ea65135684",
+    "semantic_hash": "1554978faabcebe1f98218ea65135684"
+  },
+  ".specify/scripts/bash/check-prerequisites.sh": {
+    "mtime": 1783952600.8490934,
+    "ast_hash": "bb03a7718ab35aa48261f691e8bd608a",
+    "semantic_hash": "bb03a7718ab35aa48261f691e8bd608a"
+  },
+  ".specify/scripts/bash/common.sh": {
+    "mtime": 1783952600.84968,
+    "ast_hash": "694d93e1ffecbdbaec66aeadd481e2de",
+    "semantic_hash": "694d93e1ffecbdbaec66aeadd481e2de"
+  },
+  ".specify/scripts/bash/create-new-feature.sh": {
+    "mtime": 1783952600.84968,
+    "ast_hash": "dab94a038d867d90076696298cc42a66",
+    "semantic_hash": "dab94a038d867d90076696298cc42a66"
+  },
+  ".specify/scripts/bash/setup-plan.sh": {
+    "mtime": 1783952600.84968,
+    "ast_hash": "39835c6d789d2e385e7e71461dfc9340",
+    "semantic_hash": "39835c6d789d2e385e7e71461dfc9340"
+  },
+  ".specify/scripts/bash/setup-tasks.sh": {
+    "mtime": 1783952600.84968,
+    "ast_hash": "f658662656684d96aaabfa13bb73f5fb",
+    "semantic_hash": "f658662656684d96aaabfa13bb73f5fb"
+  },
+  ".specify/workflows/workflow-registry.json": {
+    "mtime": 1783952600.852308,
+    "ast_hash": "e3a27177008a15fcca2e44c7ad767efd",
+    "semantic_hash": "e3a27177008a15fcca2e44c7ad767efd"
+  },
+  "docker/entrypoint.sh": {
+    "mtime": 1783959831.809498,
+    "ast_hash": "067505c640004a21173b60adeb2e28a1",
+    "semantic_hash": "067505c640004a21173b60adeb2e28a1"
+  },
+  "scripts/build-graph.sh": {
+    "mtime": 1783953199.4348617,
+    "ast_hash": "4ae051786835a6eb29f7e9ec80b68255",
+    "semantic_hash": "4ae051786835a6eb29f7e9ec80b68255"
+  },
+  "speechkit/yc_stt.sh": {
+    "mtime": 1783955379.086181,
+    "ast_hash": "65e053b7bfe39f739d4f777e19fe8e5e",
+    "semantic_hash": "65e053b7bfe39f739d4f777e19fe8e5e"
+  },
+  "speechkit/yc_tts.sh": {
+    "mtime": 1783955393.8861806,
+    "ast_hash": "9a3c72d5f1a997c4cac695d42e16bdcd",
+    "semantic_hash": "9a3c72d5f1a997c4cac695d42e16bdcd"
+  },
+  "scripts/memory.sh": {
+    "mtime": 1783959717.9894958,
+    "ast_hash": "c1a988078c19434c0f81b1ea578806c6",
+    "semantic_hash": "c1a988078c19434c0f81b1ea578806c6"
+  }
+}

@@ -39,6 +39,15 @@ RUN python3 -m venv /opt/tools/gfx \
 COPY speechkit/ /opt/second_brain/speechkit/
 RUN chmod +x /opt/second_brain/speechkit/*.sh
 
+# --- Grafify: зашитый граф этого репозитория (MCP-инструмент включён) --------
+# hermes поднимает graphify.serve на этом графе (GRAFIFY_ENABLED=true).
+# Свой граф пользователь может смонтировать в /opt/data/graphify-out/.
+COPY graphify-out/ /opt/second_brain/graphify-out/
+
+# --- Служебные скрипты (управление памятью и пр.) ---------------------------
+COPY scripts/ /opt/second_brain/scripts/
+RUN chmod +x /opt/second_brain/scripts/*.sh
+
 # --- Хук инициализации: собрать config.yaml из окружения до старта сервисов --
 # s6-overlay выполняет /etc/cont-init.d/* от root перед запуском gateway.
 COPY docker/entrypoint.sh /etc/cont-init.d/50-second-brain

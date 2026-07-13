@@ -7,8 +7,11 @@
 /opt/data/
 data/
 gbrain/
-graphify-out/
 *.log
+
+# Граф Grafify: коммитим сам граф, но не локальный кэш/анализ
+graphify-out/cache/
+graphify-out/.graphify_analysis.json
 
 # Python
 __pycache__/

@@ -10,14 +10,14 @@ Telegram-бот — личный «второй мозг» на связке т�
 |---|---|---|
 | [**hermes-agent**](https://github.com/NousResearch/hermes-agent) | Ядро агента и Telegram-шлюз. LLM через OpenRouter. | Базовый образ `nousresearch/hermes-agent`, запуск `gateway run` |
 | [**gbrain**](https://github.com/garrytan/gbrain) | Долговременная память (семантический поиск по заметкам/фактам). | MCP-сервер `gbrain serve`; эмбеддинги — Yandex Cloud |
-| [**Grafify**](https://github.com/LuaAccess/Grafify) | Граф знаний по коду (опционально). | MCP-сервер `graphify.serve` (включается флагом) |
+| [**Grafify**](https://github.com/LuaAccess/Grafify) | Граф знаний по коду (включён). | MCP-сервер `graphify.serve` + скилл `/graphify` для Claude Code |
 
 ```
 Telegram ──> hermes-agent (Telegram gateway)
                   │  LLM   ─────────────> OpenRouter API  (агент + суммаризатор)
                   │  voice ─> SpeechKit ─> Yandex Cloud API (STT + TTS)
                   │  MCP   ─> gbrain ────> Yandex Cloud API (эмбеддинги памяти)
-                  └─ MCP   ─> Grafify (граф кода, опц.)
+                  └─ MCP   ─> Grafify (граф кода, включён)
         Выбор модели/провайдера агента — команда /model в Telegram.
         Всё в одном контейнере на amvera.ru, данные — в томе /opt/data
 ```
@@ -45,9 +45,15 @@ Telegram ──> hermes-agent (Telegram gateway)
 ```
 /model                                  открыть пикер / список моделей
 /model anthropic/claude-opus-4.6        переключить модель
-/model --provider openrouter            сменить провайдера (openrouter | yandex ...)
+/model --provider yandex                переключиться на YandexGPT
+/model --provider openrouter            вернуться на OpenRouter
 /model gpt://<folder>/yandexgpt/latest --provider yandex
 ```
+
+Провайдер **`yandex`** появляется в `/model` автоматически: entrypoint
+регистрирует его как кастомный OpenAI-совместимый провайдер (`providers.yandex`
+в `config.yaml`) при заданных `YANDEX_CLOUD_API_KEY` + `YANDEX_CLOUD_FOLDER_ID`.
+В пикере предлагаются `yandexgpt/latest` и `yandexgpt-lite/latest`.
 
 «Каждый процесс, которому нужен LLM», настраивается отдельно:
 
@@ -64,6 +70,27 @@ Telegram ──> hermes-agent (Telegram gateway)
 озвучиваться обратно (`VOICE_AUTO_TTS=true`). Реализовано без форка hermes —
 через штатный механизм command-провайдеров STT/TTS. Голос и язык:
 `YANDEX_TTS_VOICE` (alena, filipp, jane…), `YANDEX_STT_LANG` (ru-RU).
+
+## Чистка памяти
+
+Память можно чистить двумя способами:
+
+1. **Из Telegram, словами** (проще всего) — скажите боту «забудь, что …» /
+   «удали из памяти …». Агент вызовет инструмент `forget_fact` у gbrain и
+   удалит нужный факт.
+2. **Скриптом** `scripts/memory.sh` (внутри контейнера) — для массовой очистки
+   и обслуживания:
+
+   ```bash
+   # локально
+   docker compose exec bot bash /opt/second_brain/scripts/memory.sh status   # состояние
+   docker compose exec bot bash /opt/second_brain/scripts/memory.sh clear     # ПОЛНАЯ очистка
+   # или: make memory-status / make memory-clear
+   # на amvera — те же команды в консоли сервиса
+   ```
+
+   `clear` делает `gbrain reinit-pglite` (полный wipe памяти с переинициализацией),
+   `forget <id>` удаляет один факт, `search <запрос>` помогает найти его id.
 
 ## Быстрый старт (локально)
 
@@ -101,27 +128,36 @@ docker compose up --build    # бот поднимется в режиме long 
 благодаря постоянному тому amvera. Эмбеддинги по умолчанию считаются в Yandex
 Cloud (`GBRAIN_EMBEDDING_PROVIDER=yandex`). Альтернативы — `openai`, `zeroentropy`.
 
-## Граф кода (Grafify, опционально) — как именно используется
+## Граф кода (Grafify) — как именно используется
 
-Grafify — это **инструмент агента**, а не часть чата или памяти. Работает так:
+Grafify — это **инструмент агента**. Настроен в двух местах: для hermes (бота) и
+для Claude Code (разработки в этом репозитории).
+
+**Как работает:**
 
 1. **Построение графа.** Grafify локально (tree-sitter, без вызовов API)
-   разбирает код репозитория и строит `graphify-out/graph.json` — граф связей
-   между функциями, модулями, классами.
-2. **Подключение как MCP-сервер.** При `GRAFIFY_ENABLED=true` hermes запускает
+   разбирает код и строит `graphify-out/graph.json` — граф связей между функциями,
+   модулями, файлами. Граф этого репозитория уже построен и закоммичен.
+2. **Подключение как MCP-сервер.** hermes запускает
    `python -m graphify.serve <graph.json>` и получает MCP-инструменты запроса графа.
-3. **Использование в диалоге.** Агент вызывает эти инструменты, когда вы
-   спрашиваете о структуре кода: «что вызывает функцию X?», «что сломается, если
-   поменять модуль Y?», «как auth связан с базой?». Он обходит граф вместо grep.
+3. **Использование в диалоге.** Агент обходит граф, когда вы спрашиваете о
+   структуре: «что вызывает X?», «что сломается при правке Y?» — вместо grep.
+
+**Для hermes (бот):** включён по умолчанию (`GRAFIFY_ENABLED=true`). В образ
+зашит граф этого репозитория (`/opt/second_brain/graphify-out/graph.json`), так
+что бот сразу отвечает на вопросы о собственной структуре. Чтобы отдать боту граф
+своего проекта — постройте его и положите в том `/opt/data/graphify-out/graph.json`,
+указав путь в `GRAFIFY_GRAPH_PATH`.
+
+**Для Claude Code (разработка):** установлен project-скилл `/graphify`
+(`.claude/skills/graphify/`) и хуки (`.claude/settings.json`), которые велят
+ассистенту сверяться с графом перед чтением исходников. Хуки самозащищены —
+если `graphify` не установлен, они молча пропускаются. Обновить граф:
 
 ```bash
-make graph            # построит graphify-out/graph.json по этому репозиторию
-# затем задайте: GRAFIFY_ENABLED=true и
-#                GRAFIFY_GRAPH_PATH=/opt/data/graphify-out/graph.json
+pip install "graphifyy[mcp]"     # если ещё не установлен
+make graph                        # пересобрать graphify-out/graph.json
 ```
-
-По умолчанию выключен: без готового графа MCP-сервер не поднимается (агент при
-этом остаётся полноценным Telegram-ботом с памятью и голосом).
 
 ## Файлы репозитория
 

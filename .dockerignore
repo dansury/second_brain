@@ -5,7 +5,9 @@
 !env.example
 *.log
 data/
-graphify-out/
+# Граф Grafify нужен в образе (COPY graphify-out/), но кэш — нет.
+graphify-out/cache/
+graphify-out/.graphify_analysis.json
 node_modules/
 __pycache__/
 *.pyc

@@ -1,0 +1,1127 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "check-prerequisites.sh",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/check-prerequisites.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 5,
+      "norm_label": "check-prerequisites.sh",
+      "id": "specify_scripts_bash_check_prerequisites"
+    },
+    {
+      "label": "check-prerequisites.sh script",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/check-prerequisites.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 5,
+      "norm_label": "check-prerequisites.sh script",
+      "id": "specify_scripts_bash_check_prerequisites_sh__entry"
+    },
+    {
+      "label": "common.sh",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "common.sh",
+      "id": "specify_scripts_bash_common"
+    },
+    {
+      "label": "common.sh script",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "common.sh script",
+      "id": "specify_scripts_bash_common_sh__entry"
+    },
+    {
+      "label": "find_specify_root()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L6",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "find_specify_root()",
+      "id": "specify_scripts_bash_common_find_specify_root"
+    },
+    {
+      "label": "resolve_specify_init_dir()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L38",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 7,
+      "norm_label": "resolve_specify_init_dir()",
+      "id": "specify_scripts_bash_common_resolve_specify_init_dir"
+    },
+    {
+      "label": "get_repo_root()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L56",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 7,
+      "norm_label": "get_repo_root()",
+      "id": "specify_scripts_bash_common_get_repo_root"
+    },
+    {
+      "label": "get_current_branch()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L79",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "get_current_branch()",
+      "id": "specify_scripts_bash_common_get_current_branch"
+    },
+    {
+      "label": "read_feature_json_feature_directory()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L95",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "read_feature_json_feature_directory()",
+      "id": "specify_scripts_bash_common_read_feature_json_feature_directory"
+    },
+    {
+      "label": "_persist_feature_json()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L135",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 6,
+      "norm_label": "_persist_feature_json()",
+      "id": "specify_scripts_bash_common_persist_feature_json"
+    },
+    {
+      "label": "get_feature_paths()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L163",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 6,
+      "norm_label": "get_feature_paths()",
+      "id": "specify_scripts_bash_common_get_feature_paths"
+    },
+    {
+      "label": "has_jq()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L234",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "has_jq()",
+      "id": "specify_scripts_bash_common_has_jq"
+    },
+    {
+      "label": "get_invoke_separator()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L238",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "get_invoke_separator()",
+      "id": "specify_scripts_bash_common_get_invoke_separator"
+    },
+    {
+      "label": "format_speckit_command()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L350",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "format_speckit_command()",
+      "id": "specify_scripts_bash_common_format_speckit_command"
+    },
+    {
+      "label": "json_escape()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L372",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "json_escape()",
+      "id": "specify_scripts_bash_common_json_escape"
+    },
+    {
+      "label": "check_file()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L398",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "check_file()",
+      "id": "specify_scripts_bash_common_check_file"
+    },
+    {
+      "label": "check_dir()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L399",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "check_dir()",
+      "id": "specify_scripts_bash_common_check_dir"
+    },
+    {
+      "label": "resolve_template()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L406",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "resolve_template()",
+      "id": "specify_scripts_bash_common_resolve_template"
+    },
+    {
+      "label": "resolve_template_content()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L490",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 0,
+      "norm_label": "resolve_template_content()",
+      "id": "specify_scripts_bash_common_resolve_template_content"
+    },
+    {
+      "label": "create-new-feature.sh",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 2,
+      "norm_label": "create-new-feature.sh",
+      "id": "specify_scripts_bash_create_new_feature"
+    },
+    {
+      "label": "create-new-feature.sh script",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 2,
+      "norm_label": "create-new-feature.sh script",
+      "id": "specify_scripts_bash_create_new_feature_sh__entry"
+    },
+    {
+      "label": "get_highest_from_specs()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L94",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 2,
+      "norm_label": "get_highest_from_specs()",
+      "id": "specify_scripts_bash_create_new_feature_get_highest_from_specs"
+    },
+    {
+      "label": "clean_branch_name()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L117",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 2,
+      "norm_label": "clean_branch_name()",
+      "id": "specify_scripts_bash_create_new_feature_clean_branch_name"
+    },
+    {
+      "label": "generate_branch_name()",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L136",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "community": 2,
+      "norm_label": "generate_branch_name()",
+      "id": "specify_scripts_bash_create_new_feature_generate_branch_name"
+    },
+    {
+      "label": "setup-plan.sh",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/setup-plan.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 8,
+      "norm_label": "setup-plan.sh",
+      "id": "specify_scripts_bash_setup_plan"
+    },
+    {
+      "label": "setup-plan.sh script",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/setup-plan.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 8,
+      "norm_label": "setup-plan.sh script",
+      "id": "specify_scripts_bash_setup_plan_sh__entry"
+    },
+    {
+      "label": "setup-tasks.sh",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/setup-tasks.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 9,
+      "norm_label": "setup-tasks.sh",
+      "id": "specify_scripts_bash_setup_tasks"
+    },
+    {
+      "label": "setup-tasks.sh script",
+      "file_type": "code",
+      "source_file": ".specify/scripts/bash/setup-tasks.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 9,
+      "norm_label": "setup-tasks.sh script",
+      "id": "specify_scripts_bash_setup_tasks_sh__entry"
+    },
+    {
+      "label": "build-graph.sh",
+      "file_type": "code",
+      "source_file": "scripts/build-graph.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 4,
+      "norm_label": "build-graph.sh",
+      "id": "scripts_build_graph"
+    },
+    {
+      "label": "build-graph.sh script",
+      "file_type": "code",
+      "source_file": "scripts/build-graph.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 4,
+      "norm_label": "build-graph.sh script",
+      "id": "scripts_build_graph_sh__entry"
+    },
+    {
+      "label": "yc_stt.sh",
+      "file_type": "code",
+      "source_file": "speechkit/yc_stt.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 10,
+      "norm_label": "yc_stt.sh",
+      "id": "speechkit_yc_stt"
+    },
+    {
+      "label": "yc_stt.sh script",
+      "file_type": "code",
+      "source_file": "speechkit/yc_stt.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 10,
+      "norm_label": "yc_stt.sh script",
+      "id": "speechkit_yc_stt_sh__entry"
+    },
+    {
+      "label": "yc_tts.sh",
+      "file_type": "code",
+      "source_file": "speechkit/yc_tts.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "community": 11,
+      "norm_label": "yc_tts.sh",
+      "id": "speechkit_yc_tts"
+    },
+    {
+      "label": "yc_tts.sh script",
+      "file_type": "code",
+      "source_file": "speechkit/yc_tts.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "community": 11,
+      "norm_label": "yc_tts.sh script",
+      "id": "speechkit_yc_tts_sh__entry"
+    },
+    {
+      "label": "entrypoint.sh",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint",
+      "community": 1,
+      "norm_label": "entrypoint.sh"
+    },
+    {
+      "label": "entrypoint.sh script",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_sh__entry",
+      "community": 1,
+      "norm_label": "entrypoint.sh script"
+    },
+    {
+      "label": "log()",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L16",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_log",
+      "community": 1,
+      "norm_label": "log()"
+    },
+    {
+      "label": "providers_block()",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L50",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_providers_block",
+      "community": 1,
+      "norm_label": "providers_block()"
+    },
+    {
+      "label": "provider_block()",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L70",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_provider_block",
+      "community": 1,
+      "norm_label": "provider_block()"
+    },
+    {
+      "label": "voice_block()",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L90",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_voice_block",
+      "community": 1,
+      "norm_label": "voice_block()"
+    },
+    {
+      "label": "auxiliary_block()",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L124",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_auxiliary_block",
+      "community": 1,
+      "norm_label": "auxiliary_block()"
+    },
+    {
+      "label": "gbrain_block()",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L136",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_gbrain_block",
+      "community": 1,
+      "norm_label": "gbrain_block()"
+    },
+    {
+      "label": "grafify_block()",
+      "file_type": "code",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L181",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_function"
+      },
+      "_origin": "ast",
+      "id": "docker_entrypoint_grafify_block",
+      "community": 1,
+      "norm_label": "grafify_block()"
+    },
+    {
+      "label": "memory.sh",
+      "file_type": "code",
+      "source_file": "scripts/memory.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "file"
+      },
+      "_origin": "ast",
+      "id": "scripts_memory",
+      "community": 3,
+      "norm_label": "memory.sh"
+    },
+    {
+      "label": "memory.sh script",
+      "file_type": "code",
+      "source_file": "scripts/memory.sh",
+      "source_location": "L1",
+      "metadata": {
+        "language": "bash",
+        "kind": "bash_entrypoint"
+      },
+      "_origin": "ast",
+      "id": "scripts_memory_sh__entry",
+      "community": 3,
+      "norm_label": "memory.sh script"
+    },
+    {
+      "label": "GBRAIN_HOME",
+      "file_type": "code",
+      "source_file": "scripts/memory.sh",
+      "source_location": "L22",
+      "metadata": {
+        "language": "bash",
+        "kind": "code"
+      },
+      "_origin": "ast",
+      "id": "scripts_memory_gbrain_home",
+      "community": 3,
+      "norm_label": "gbrain_home"
+    },
+    {
+      "label": "HOME",
+      "file_type": "code",
+      "source_file": "scripts/memory.sh",
+      "source_location": "L23",
+      "metadata": {
+        "language": "bash",
+        "kind": "code"
+      },
+      "_origin": "ast",
+      "id": "scripts_memory_home",
+      "community": 3,
+      "norm_label": "home"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/check-prerequisites.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_check_prerequisites",
+      "target": "specify_scripts_bash_check_prerequisites_sh__entry"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L399",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_check_dir"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L398",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_check_file"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L6",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_find_specify_root"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L350",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_format_speckit_command"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L79",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_get_current_branch"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L163",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_get_feature_paths"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L238",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_get_invoke_separator"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L56",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_get_repo_root"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L234",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_has_jq"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L372",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_json_escape"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L135",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_persist_feature_json"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L95",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_read_feature_json_feature_directory"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L38",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_resolve_specify_init_dir"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L406",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_resolve_template"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L490",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_resolve_template_content"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common",
+      "target": "specify_scripts_bash_common_sh__entry"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L59",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common_get_repo_root",
+      "target": "specify_scripts_bash_common_resolve_specify_init_dir"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/common.sh",
+      "source_location": "L192",
+      "weight": 1.0,
+      "context": "call",
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_common_get_feature_paths",
+      "target": "specify_scripts_bash_common_persist_feature_json"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L117",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_create_new_feature",
+      "target": "specify_scripts_bash_create_new_feature_clean_branch_name"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L136",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_create_new_feature",
+      "target": "specify_scripts_bash_create_new_feature_generate_branch_name"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L94",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_create_new_feature",
+      "target": "specify_scripts_bash_create_new_feature_get_highest_from_specs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/create-new-feature.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_create_new_feature",
+      "target": "specify_scripts_bash_create_new_feature_sh__entry"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/setup-plan.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_setup_plan",
+      "target": "specify_scripts_bash_setup_plan_sh__entry"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".specify/scripts/bash/setup-tasks.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "specify_scripts_bash_setup_tasks",
+      "target": "specify_scripts_bash_setup_tasks_sh__entry"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/build-graph.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "scripts_build_graph",
+      "target": "scripts_build_graph_sh__entry"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "speechkit/yc_stt.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "speechkit_yc_stt",
+      "target": "speechkit_yc_stt_sh__entry"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "speechkit/yc_tts.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "speechkit_yc_tts",
+      "target": "speechkit_yc_tts_sh__entry"
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L124",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_auxiliary_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L136",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_gbrain_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L181",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_grafify_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_provider_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L50",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_providers_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_sh__entry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L90",
+      "weight": 1.0,
+      "source": "docker_entrypoint",
+      "target": "docker_entrypoint_voice_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L206",
+      "weight": 1.0,
+      "context": "call",
+      "source": "docker_entrypoint_sh__entry",
+      "target": "docker_entrypoint_auxiliary_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L200",
+      "weight": 1.0,
+      "context": "call",
+      "source": "docker_entrypoint_sh__entry",
+      "target": "docker_entrypoint_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L203",
+      "weight": 1.0,
+      "context": "call",
+      "source": "docker_entrypoint_sh__entry",
+      "target": "docker_entrypoint_provider_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L204",
+      "weight": 1.0,
+      "context": "call",
+      "source": "docker_entrypoint_sh__entry",
+      "target": "docker_entrypoint_providers_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L205",
+      "weight": 1.0,
+      "context": "call",
+      "source": "docker_entrypoint_sh__entry",
+      "target": "docker_entrypoint_voice_block",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "docker/entrypoint.sh",
+      "source_location": "L184",
+      "weight": 1.0,
+      "context": "call",
+      "source": "docker_entrypoint_grafify_block",
+      "target": "docker_entrypoint_log",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/memory.sh",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "scripts_memory",
+      "target": "scripts_memory_gbrain_home",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "defines",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/memory.sh",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "scripts_memory",
+      "target": "scripts_memory_home",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/memory.sh",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "scripts_memory",
+      "target": "scripts_memory_sh__entry",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "built_at_commit": "33e708f588497a2f6af83a813dbdaf49910cef35"
+}

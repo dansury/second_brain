@@ -30,8 +30,11 @@ GBRAIN_ENABLED="${GBRAIN_ENABLED:-true}"
 GBRAIN_HOME="${GBRAIN_HOME:-${HERMES_HOME}/gbrain}"
 GBRAIN_EMBEDDING_PROVIDER="${GBRAIN_EMBEDDING_PROVIDER:-yandex}"
 
-GRAFIFY_ENABLED="${GRAFIFY_ENABLED:-false}"
-GRAFIFY_GRAPH_PATH="${GRAFIFY_GRAPH_PATH:-${HERMES_HOME}/graphify-out/graph.json}"
+# Grafify включён по умолчанию: в образ зашит граф этого репозитория
+# (/opt/second_brain/graphify-out/graph.json). Свой граф пользователь может
+# положить в /opt/data/graphify-out/graph.json и указать через GRAFIFY_GRAPH_PATH.
+GRAFIFY_ENABLED="${GRAFIFY_ENABLED:-true}"
+GRAFIFY_GRAPH_PATH="${GRAFIFY_GRAPH_PATH:-/opt/second_brain/graphify-out/graph.json}"
 GRAFIFY_PYTHON="${GRAFIFY_PYTHON:-/opt/tools/gfx/bin/python}"
 
 YANDEX_OPENAI_BASE_URL="${YANDEX_OPENAI_BASE_URL:-https://llm.api.cloud.yandex.net/v1}"
@@ -41,8 +44,29 @@ YANDEX_EMBEDDING_MODEL="${YANDEX_EMBEDDING_MODEL:-text-search-doc}"
 VOICE_ENABLED="${VOICE_ENABLED:-true}"
 SPEECHKIT_DIR="${SPEECHKIT_DIR:-/opt/second_brain/speechkit}"
 
-# --- Опция: YandexGPT как основной LLM вместо OpenRouter ---------------------
-# Hermes ходит в любой OpenAI-совместимый эндпоинт через model.base_url.
+# --- Реестр провайдеров: делает Yandex выбираемым в /model -------------------
+# Кастомный OpenAI-совместимый провайдер «yandex» появляется в пикере /model
+# и в `/model --provider yandex`. Ключ берётся из YANDEX_CLOUD_API_KEY.
+providers_block() {
+  [[ -n "${YANDEX_CLOUD_FOLDER_ID:-}" ]] || return 0
+  local f="${YANDEX_CLOUD_FOLDER_ID}"
+  cat <<EOF
+
+# Провайдеры для команды /model (кроме встроенного openrouter).
+providers:
+  yandex:
+    name: "Yandex Cloud (YandexGPT)"
+    base_url: "${YANDEX_OPENAI_BASE_URL}"
+    key_env: YANDEX_CLOUD_API_KEY
+    default_model: "gpt://${f}/yandexgpt/latest"
+    discover_models: false
+    models:
+      - "gpt://${f}/yandexgpt/latest"
+      - "gpt://${f}/yandexgpt-lite/latest"
+EOF
+}
+
+# --- Основной LLM: OpenRouter (по умолчанию) или Yandex ----------------------
 provider_block() {
   if [[ "${LLM_PROVIDER}" == "yandex" ]]; then
     : "${YANDEX_CLOUD_API_KEY:?YANDEX_CLOUD_API_KEY нужен при LLM_PROVIDER=yandex}"
@@ -50,10 +74,8 @@ provider_block() {
     local ygpt="${YANDEXGPT_MODEL:-yandexgpt/latest}"
     cat <<EOF
 model:
-  provider: openai-compatible
+  provider: yandex
   default: "gpt://${YANDEX_CLOUD_FOLDER_ID}/${ygpt}"
-  base_url: "${YANDEX_OPENAI_BASE_URL}"
-  api_key_env: YANDEX_CLOUD_API_KEY
 EOF
   else
     cat <<EOF
@@ -179,6 +201,7 @@ log "Пишу ${CONFIG} (провайдер=${LLM_PROVIDER}, модель=${LLM_
 mcp_out="$(gbrain_block; grafify_block)"
 {
   provider_block
+  providers_block
   voice_block
   auxiliary_block
   if [[ -n "${mcp_out//[$'\n\t ']/}" ]]; then

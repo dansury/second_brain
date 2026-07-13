@@ -11,6 +11,19 @@ model:
   provider: openrouter
   default: "anthropic/claude-opus-4.6"
 
+# Провайдеры для команды /model. «yandex» — кастомный OpenAI-совместимый
+# провайдер: появляется в пикере /model и в `/model --provider yandex`.
+providers:
+  yandex:
+    name: "Yandex Cloud (YandexGPT)"
+    base_url: "https://llm.api.cloud.yandex.net/v1"
+    key_env: YANDEX_CLOUD_API_KEY
+    default_model: "gpt://<YANDEX_CLOUD_FOLDER_ID>/yandexgpt/latest"
+    discover_models: false
+    models:
+      - "gpt://<YANDEX_CLOUD_FOLDER_ID>/yandexgpt/latest"
+      - "gpt://<YANDEX_CLOUD_FOLDER_ID>/yandexgpt-lite/latest"
+
 # Голос: Yandex SpeechKit как основной STT/TTS (command-провайдеры).
 stt:
   provider: yandex
@@ -50,9 +63,9 @@ mcp_servers:
       OPENAI_API_KEY: "<YANDEX_CLOUD_API_KEY>"
       EMBEDDING_MODEL: "openai:emb://<YANDEX_CLOUD_FOLDER_ID>/text-search-doc/latest"
 
-  # Граф знаний по коду (включается при GRAFIFY_ENABLED=true и наличии графа).
-  # grafify:
-  #   command: "/opt/tools/gfx/bin/python"
-  #   args: ["-m", "graphify.serve", "/opt/data/graphify-out/graph.json"]
-  #   enabled: true
-  #   timeout: 120
+  # Граф знаний по коду (включён по умолчанию; граф зашит в образ).
+  grafify:
+    command: "/opt/tools/gfx/bin/python"
+    args: ["-m", "graphify.serve", "/opt/second_brain/graphify-out/graph.json"]
+    enabled: true
+    timeout: 120
