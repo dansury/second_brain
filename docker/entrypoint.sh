@@ -11,7 +11,9 @@
 # =============================================================================
 set -euo pipefail
 
-log() { printf '[second_brain] %s\n' "$*"; }
+# Логи идут в stderr, чтобы не попадать в config.yaml, который собирается
+# через подстановку команд (stdout захватывается).
+log() { printf '[second_brain] %s\n' "$*" >&2; }
 
 HERMES_HOME="${HERMES_HOME:-/opt/data}"
 CONFIG="${HERMES_HOME}/config.yaml"
@@ -35,6 +37,10 @@ GRAFIFY_PYTHON="${GRAFIFY_PYTHON:-/opt/tools/gfx/bin/python}"
 YANDEX_OPENAI_BASE_URL="${YANDEX_OPENAI_BASE_URL:-https://llm.api.cloud.yandex.net/v1}"
 YANDEX_EMBEDDING_MODEL="${YANDEX_EMBEDDING_MODEL:-text-search-doc}"
 
+# Голос: Yandex SpeechKit — основной движок STT/TTS (command-провайдеры hermes).
+VOICE_ENABLED="${VOICE_ENABLED:-true}"
+SPEECHKIT_DIR="${SPEECHKIT_DIR:-/opt/second_brain/speechkit}"
+
 # --- Опция: YandexGPT как основной LLM вместо OpenRouter ---------------------
 # Hermes ходит в любой OpenAI-совместимый эндпоинт через model.base_url.
 provider_block() {
@@ -56,6 +62,52 @@ model:
   default: "${LLM_MODEL}"
 EOF
   fi
+}
+
+# --- Голос: Yandex SpeechKit как основной STT/TTS ---------------------------
+voice_block() {
+  [[ "${VOICE_ENABLED}" == "true" ]] || return 0
+  : "${YANDEX_CLOUD_API_KEY:?YANDEX_CLOUD_API_KEY нужен для голоса (SpeechKit)}"
+  : "${YANDEX_CLOUD_FOLDER_ID:?YANDEX_CLOUD_FOLDER_ID нужен для голоса (SpeechKit)}"
+  local stt_lang="${YANDEX_STT_LANG:-ru-RU}"
+  local tts_voice="${YANDEX_TTS_VOICE:-alena}"
+  local auto_tts="${VOICE_AUTO_TTS:-true}"
+  cat <<EOF
+
+# Распознавание речи: Yandex SpeechKit (command-провайдер)
+stt:
+  provider: yandex
+  providers:
+    yandex:
+      type: command
+      language: "${stt_lang}"
+      command: "${SPEECHKIT_DIR}/yc_stt.sh {input_path} {output_path} {language}"
+
+# Синтез речи: Yandex SpeechKit (command-провайдер)
+voice:
+  auto_tts: ${auto_tts}
+tts:
+  provider: yandex
+  providers:
+    yandex:
+      type: command
+      voice: "${tts_voice}"
+      command: "${SPEECHKIT_DIR}/yc_tts.sh {input_path} {output_path} {format} {voice}"
+EOF
+}
+
+# --- Вторичная LLM-роль: суммаризатор сжатия контекста -----------------------
+# «Каждый процесс, которому нужен LLM»: помимо основного агента (см. /model),
+# отдельная модель используется для авто-сжатия длинного диалога.
+auxiliary_block() {
+  [[ -n "${LLM_SUMMARY_MODEL:-}" ]] || return 0
+  cat <<EOF
+
+auxiliary:
+  compression:
+    summary_provider: ${LLM_SUMMARY_PROVIDER:-openrouter}
+    summary_model: "${LLM_SUMMARY_MODEL}"
+EOF
 }
 
 # --- MCP: gbrain (долговременная память) ------------------------------------
@@ -127,6 +179,8 @@ log "Пишу ${CONFIG} (провайдер=${LLM_PROVIDER}, модель=${LLM_
 mcp_out="$(gbrain_block; grafify_block)"
 {
   provider_block
+  voice_block
+  auxiliary_block
   if [[ -n "${mcp_out//[$'\n\t ']/}" ]]; then
     echo ""
     echo "mcp_servers:"

@@ -11,6 +11,30 @@ model:
   provider: openrouter
   default: "anthropic/claude-opus-4.6"
 
+# Голос: Yandex SpeechKit как основной STT/TTS (command-провайдеры).
+stt:
+  provider: yandex
+  providers:
+    yandex:
+      type: command
+      language: "ru-RU"
+      command: "/opt/second_brain/speechkit/yc_stt.sh {input_path} {output_path} {language}"
+voice:
+  auto_tts: true
+tts:
+  provider: yandex
+  providers:
+    yandex:
+      type: command
+      voice: "alena"
+      command: "/opt/second_brain/speechkit/yc_tts.sh {input_path} {output_path} {format} {voice}"
+
+# Вторичная LLM-роль: модель суммаризатора авто-сжатия контекста.
+auxiliary:
+  compression:
+    summary_provider: openrouter
+    summary_model: "google/gemini-3-flash-preview"
+
 mcp_servers:
   # Долговременная память. Эмбеддинги идут в Yandex Cloud через
   # OpenAI-совместимый эндпоинт (emb://<folder>/text-search-doc/latest).

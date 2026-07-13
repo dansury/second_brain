@@ -34,6 +34,11 @@ RUN python3 -m venv /opt/tools/gfx \
     && /opt/tools/gfx/bin/pip install --no-cache-dir "graphifyy[mcp]" \
     && /opt/tools/gfx/bin/graphify --help >/dev/null 2>&1 || true
 
+# --- Yandex SpeechKit: command-провайдеры STT/TTS для hermes -----------------
+# hermes вызывает эти скрипты как основной движок голоса (см. entrypoint).
+COPY speechkit/ /opt/second_brain/speechkit/
+RUN chmod +x /opt/second_brain/speechkit/*.sh
+
 # --- Хук инициализации: собрать config.yaml из окружения до старта сервисов --
 # s6-overlay выполняет /etc/cont-init.d/* от root перед запуском gateway.
 COPY docker/entrypoint.sh /etc/cont-init.d/50-second-brain

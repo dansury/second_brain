@@ -1,0 +1,44 @@
+name: build-image
+
+# Собирает docker-образ second_brain на раннерах GitHub (у них есть доступ к
+# Docker Hub для базового образа nousresearch/hermes-agent). Это фактический
+# прогон сборки Dockerfile — на пуш в ветку и в PR.
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "Dockerfile"
+      - "docker/**"
+      - "speechkit/**"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "Dockerfile"
+      - "docker/**"
+      - "speechkit/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate shell scripts
+        run: |
+          bash -n docker/entrypoint.sh
+          bash -n speechkit/yc_stt.sh
+          bash -n speechkit/yc_tts.sh
+          bash -n scripts/build-graph.sh
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: second_brain:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
