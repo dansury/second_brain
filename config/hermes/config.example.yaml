@@ -69,3 +69,19 @@ mcp_servers:
     args: ["-m", "graphify.serve", "/opt/second_brain/graphify-out/graph.json"]
     enabled: true
     timeout: 120
+
+  # Дневник-консультант (см. ТЗ.md): персоны, запись в Obsidian-vault,
+  # feedback (👍👎), список моделей по цене. Инструменты — tools/second-brain-mcp/.
+  second-brain:
+    command: bun
+    args: ["run", "/opt/second_brain/tools/second-brain-mcp/src/index.js"]
+    enabled: true
+    timeout: 60
+    env:
+      VAULT_PATH: "/opt/data/vault"
+      OPENROUTER_API_KEY: "<OPENROUTER_API_KEY>"
+
+# Многослойный промт конвейера (слои 0-9, ТЗ.md §5) hermes НЕ читает из
+# config.yaml — единственная поддерживаемая точка кастомной идентичности
+# агента это $HERMES_HOME/SOUL.md. entrypoint.sh собирает его из Promts/*.md
+# при каждом старте контейнера (см. ТЗ.md §9/§10.2).

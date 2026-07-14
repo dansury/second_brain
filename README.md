@@ -11,13 +11,15 @@ Telegram-бот — личный «второй мозг» на связке т�
 | [**hermes-agent**](https://github.com/NousResearch/hermes-agent) | Ядро агента и Telegram-шлюз. LLM через OpenRouter. | Базовый образ `nousresearch/hermes-agent`, запуск `gateway run` |
 | [**gbrain**](https://github.com/garrytan/gbrain) | Долговременная память (семантический поиск по заметкам/фактам). | MCP-сервер `gbrain serve`; эмбеддинги — Yandex Cloud |
 | [**Grafify**](https://github.com/LuaAccess/Grafify) | Граф знаний по коду (включён). | MCP-сервер `graphify.serve` + скилл `/graphify` для Claude Code |
+| **second-brain-mcp** (`tools/second-brain-mcp/`) | Дневник-консультант: персоны, Obsidian-vault, feedback, модели по цене. См. [`ТЗ.md`](./ТЗ.md). | MCP-сервер `second-brain`; промт слоёв — `Promts/*.md` → `SOUL.md` |
 
 ```
 Telegram ──> hermes-agent (Telegram gateway)
                   │  LLM   ─────────────> OpenRouter API  (агент + суммаризатор)
                   │  voice ─> SpeechKit ─> Yandex Cloud API (STT + TTS)
                   │  MCP   ─> gbrain ────> Yandex Cloud API (эмбеддинги памяти)
-                  └─ MCP   ─> Grafify (граф кода, включён)
+                  │  MCP   ─> Grafify (граф кода, включён)
+                  └─ MCP   ─> second-brain (персоны/vault/feedback, промт из Promts/ → SOUL.md)
         Выбор модели/провайдера агента — команда /model в Telegram.
         Всё в одном контейнере на amvera.ru, данные — в томе /opt/data
 ```
@@ -121,6 +123,26 @@ docker compose up --build    # бот поднимется в режиме long 
 - **Yandex Cloud** — сервисный аккаунт с ролью `ai.languageModels.user`, затем
   API-ключ и `folder_id`: https://yandex.cloud/ru/docs/ai-studio/
 
+## Дневник-консультант (second-brain)
+
+Полная функциональная спецификация — [`ТЗ.md`](./ТЗ.md), приложение с
+пользовательскими сценариями — [`CJM.html`](./CJM.html) (открывается в
+браузере, удобно с телефона), промты по слоям многослойного анализа —
+[`Promts/`](./Promts).
+
+Коротко: бот принимает дневниковые записи (текст/голос/видео/фото/документы)
+из канала-дневника, чата «Избранное» или личного диалога, прогоняет их через
+многослойный LLM-конвейер (роутинг → персоны → классификация → консультация
+по решениям → lint) и складывает в Obsidian-vault (`VAULT_PATH`,
+`/opt/data/vault` по умолчанию). Реализация — MCP-сервер
+`tools/second-brain-mcp/` (инструменты: персоны, запись в vault, feedback,
+список моделей по цене) + `Promts/*.md`, которые `docker/entrypoint.sh`
+собирает в `$HERMES_HOME/SOUL.md` при каждом старте (это единственная
+поддерживаемая hermes точка кастомной идентичности агента — см. ТЗ §9).
+
+Состояние vault-а: `scripts/vault.sh status` / `backup` / `reset` (по
+аналогии с `scripts/memory.sh` для gbrain).
+
 ## Память (gbrain)
 
 `gbrain` инициализируется автоматически при первом старте в `GBRAIN_HOME`
@@ -163,13 +185,16 @@ make graph                        # пересобрать graphify-out/graph.js
 
 | Файл | Назначение |
 |---|---|
-| `Dockerfile` | Единый образ: hermes + bun/gbrain + graphify |
+| `Dockerfile` | Единый образ: hermes + bun/gbrain + graphify + second-brain-mcp |
 | `amvera.yml` | Конфиг деплоя amvera (том → `/opt/data`) |
-| `docker/entrypoint.sh` | Собирает `config.yaml` hermes из переменных окружения на старте |
+| `docker/entrypoint.sh` | Собирает `config.yaml` и `SOUL.md` hermes из переменных окружения/`Promts/` на старте |
 | `docker-compose.yml` | Локальный запуск (тот же образ) |
 | `speechkit/yc_stt.sh`, `yc_tts.sh` | Yandex SpeechKit как STT/TTS (command-провайдеры hermes) |
 | `env.example` | Все переменные с комментариями |
 | `config/hermes/config.example.yaml` | Как выглядит итоговый конфиг hermes |
+| `ТЗ.md`, `CJM.html`, `Promts/` | Спецификация дневника-консультанта, пользовательские сценарии, промты слоёв |
+| `tools/second-brain-mcp/` | MCP-сервер: персоны, vault, feedback, модели по цене (см. `ТЗ.md` §10.1) |
+| `scripts/vault.sh` | Статус/бэкап/сброс Obsidian-vault-а |
 | `.github/workflows/build.yml` | CI: фактическая сборка образа на пуш/PR |
 | `scripts/build-graph.sh`, `Makefile` | Утилиты (граф Grafify и пр.) |
 

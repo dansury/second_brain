@@ -19,6 +19,11 @@ HERMES_HOME="${HERMES_HOME:-/opt/data}"
 CONFIG="${HERMES_HOME}/config.yaml"
 mkdir -p "${HERMES_HOME}"
 
+# second_brain: дневник-консультант (ТЗ.md) — vault и MCP-сервер поверх стека
+VAULT_PATH="${VAULT_PATH:-${HERMES_HOME}/vault}"
+SECOND_BRAIN_MCP_ENABLED="${SECOND_BRAIN_MCP_ENABLED:-true}"
+SECOND_BRAIN_DIR="${SECOND_BRAIN_DIR:-/opt/second_brain}"
+
 # --- Обязательные переменные -------------------------------------------------
 : "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN не задан — получите токен у @BotFather}"
 : "${OPENROUTER_API_KEY:?OPENROUTER_API_KEY не задан — ключ на https://openrouter.ai/keys}"
@@ -177,6 +182,23 @@ ${emb_env}
 EOF
 }
 
+# --- MCP: second-brain (персоны, vault, feedback, модели по цене) -----------
+second_brain_mcp_block() {
+  [[ "${SECOND_BRAIN_MCP_ENABLED}" == "true" ]] || return 0
+  local bun_bin="bun"
+  command -v bun >/dev/null 2>&1 && bun_bin="$(command -v bun)"
+  cat <<EOF
+  second-brain:
+    command: "${bun_bin}"
+    args: ["run", "${SECOND_BRAIN_DIR}/tools/second-brain-mcp/src/index.js"]
+    enabled: true
+    timeout: 60
+    env:
+      VAULT_PATH: "${VAULT_PATH}"
+      OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
+EOF
+}
+
 # --- MCP: Grafify (граф кода) -----------------------------------------------
 grafify_block() {
   [[ "${GRAFIFY_ENABLED}" == "true" ]] || return 0
@@ -196,9 +218,45 @@ grafify_block() {
 EOF
 }
 
+# --- SOUL.md: многослойный промт second_brain (ТЗ.md §9) --------------------
+# hermes-agent не читает произвольную папку с промтами — единственная
+# поддерживаемая точка инъекции кастомной идентичности агента это
+# ${HERMES_HOME}/SOUL.md (см. Prompt Assembly в доках hermes). Собираем его
+# из Promts/*.md в порядке, заданном Promts/README.md, при КАЖДОМ старте —
+# редактировать нужно Promts/*.md в репозитории, а не SOUL.md в томе.
+write_soul() {
+  local promts_dir="${SECOND_BRAIN_DIR}/Promts"
+  local soul="${HERMES_HOME}/SOUL.md"
+  [[ -d "${promts_dir}" ]] || { log "Promts/ не найдена (${promts_dir}) — SOUL.md не обновлён."; return 0; }
+
+  local order=(
+    00_router 01_transcription_cleanup 02_entity_recognition 03_classification
+    04a_extract_decision 04b_risk_factors 04c_precedents 04d_forecast_perspectives 04e_consultant_synthesis
+    05_document_intake 06_photo_people 07_handwriting 08_obsidian_lint 09_feedback_and_model_switch
+  )
+
+  {
+    echo "# second_brain — многослойный конвейер (сгенерировано из Promts/, см. ТЗ.md §9)"
+    echo ""
+    for name in "${order[@]}"; do
+      local f="${promts_dir}/${name}.md"
+      if [[ -f "${f}" ]]; then
+        echo "---"
+        cat "${f}"
+        echo ""
+      else
+        log "Promts/${name}.md не найден — пропущен при сборке SOUL.md."
+      fi
+    done
+  } > "${soul}"
+  log "Собран ${soul} из $(printf '%s\n' "${order[@]}" | wc -l | tr -d ' ') промтов."
+}
+
 # --- Сборка config.yaml ------------------------------------------------------
 log "Пишу ${CONFIG} (провайдер=${LLM_PROVIDER}, модель=${LLM_MODEL})"
-mcp_out="$(gbrain_block; grafify_block)"
+mkdir -p "${VAULT_PATH}"
+write_soul
+mcp_out="$(gbrain_block; grafify_block; second_brain_mcp_block)"
 {
   provider_block
   providers_block
