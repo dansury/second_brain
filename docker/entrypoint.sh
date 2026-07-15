@@ -141,11 +141,11 @@ EOF
 # Авто-роутинг основной модели по сложности входа: короткая заметка → дешёвая
 # модель, рассуждение/длинный контекст → сильная. НЕ дублирует ручной выбор
 # (/model) и cost-флоу слоя 9 (Promts/09 + list_models_by_price) — работает до
-# них, автоматически. По умолчанию ВЫКЛ: блок не пишется в config.yaml, пока
-# SMART_ROUTING_ENABLED=true (плагин ставится в образ Dockerfile-ом, а активацию
-# ключа читает hermes только когда плагин присутствует). Тиры → модели OpenRouter.
+# них, автоматически. Включено по умолчанию (SMART_ROUTING_ENABLED=true); блок
+# пишется в config.yaml. Отключение — SMART_ROUTING_ENABLED=false (тогда блок не
+# пишется). Плагин ставится в образ Dockerfile-ом. Тиры → модели OpenRouter.
 smart_routing_block() {
-  [[ "${SMART_ROUTING_ENABLED:-false}" == "true" ]] || return 0
+  [[ "${SMART_ROUTING_ENABLED:-true}" == "true" ]] || return 0
   local cheap="${SMART_ROUTING_CHEAP_MODEL:-google/gemini-3-flash-preview}"
   local standard="${SMART_ROUTING_STANDARD_MODEL:-${LLM_MODEL:-anthropic/claude-opus-4.6}}"
   local code="${SMART_ROUTING_CODE_MODEL:-${standard}}"
