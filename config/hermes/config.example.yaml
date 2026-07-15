@@ -48,6 +48,25 @@ auxiliary:
     summary_provider: openrouter
     summary_model: "google/gemini-3-flash-preview"
 
+# Тиро-роутинг по сложности входа (плагин hermes-smart-model-routing).
+# Пишется в config.yaml только при SMART_ROUTING_ENABLED=true (по умолчанию OFF,
+# чтобы сток-деплой не ломался неизвестным ключом). Дополняет, а не дублирует
+# ручной /model и cost-флоу слоя 9 (Promts/09 + list_models_by_price): роутер
+# выбирает модель автоматически ДО них — дешёвую для коротких заметок, сильную
+# для рассуждений и длинного контекста.
+smart_model_routing:
+  enabled: true
+  primary_provider: openrouter
+  thresholds:
+    cheap:    { max_chars: 500,  max_words: 80,  max_lines: 6 }
+    standard: { max_chars: 1800, max_words: 280, max_lines: 18 }
+  tiers:
+    cheap:        { provider: openrouter, model: "google/gemini-3-flash-preview" }
+    standard:     { provider: openrouter, model: "anthropic/claude-opus-4.6" }
+    code:         { provider: openrouter, model: "anthropic/claude-opus-4.6" }
+    reasoning:    { provider: openrouter, model: "anthropic/claude-opus-4.6" }
+    long_context: { provider: openrouter, model: "anthropic/claude-opus-4.6" }
+
 mcp_servers:
   # Долговременная память. Эмбеддинги идут в Yandex Cloud через
   # OpenAI-совместимый эндпоинт (emb://<folder>/text-search-doc/latest).

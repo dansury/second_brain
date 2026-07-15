@@ -137,6 +137,39 @@ auxiliary:
 EOF
 }
 
+# --- Smart model routing (плагин hermes-smart-model-routing) -----------------
+# Авто-роутинг основной модели по сложности входа: короткая заметка → дешёвая
+# модель, рассуждение/длинный контекст → сильная. НЕ дублирует ручной выбор
+# (/model) и cost-флоу слоя 9 (Promts/09 + list_models_by_price) — работает до
+# них, автоматически. По умолчанию ВЫКЛ: блок не пишется в config.yaml, пока
+# SMART_ROUTING_ENABLED=true (плагин ставится в образ Dockerfile-ом, а активацию
+# ключа читает hermes только когда плагин присутствует). Тиры → модели OpenRouter.
+smart_routing_block() {
+  [[ "${SMART_ROUTING_ENABLED:-false}" == "true" ]] || return 0
+  local cheap="${SMART_ROUTING_CHEAP_MODEL:-google/gemini-3-flash-preview}"
+  local standard="${SMART_ROUTING_STANDARD_MODEL:-${LLM_MODEL:-anthropic/claude-opus-4.6}}"
+  local code="${SMART_ROUTING_CODE_MODEL:-${standard}}"
+  local reasoning="${SMART_ROUTING_REASONING_MODEL:-${LLM_MODEL:-anthropic/claude-opus-4.6}}"
+  local long_ctx="${SMART_ROUTING_LONG_MODEL:-${standard}}"
+  local prov="${SMART_ROUTING_PROVIDER:-openrouter}"
+  cat <<EOF
+
+# Тиро-роутинг по сложности входа (плагин hermes-smart-model-routing).
+smart_model_routing:
+  enabled: true
+  primary_provider: ${prov}
+  thresholds:
+    cheap:    { max_chars: 500,  max_words: 80,  max_lines: 6 }
+    standard: { max_chars: 1800, max_words: 280, max_lines: 18 }
+  tiers:
+    cheap:        { provider: ${prov}, model: "${cheap}" }
+    standard:     { provider: ${prov}, model: "${standard}" }
+    code:         { provider: ${prov}, model: "${code}" }
+    reasoning:    { provider: ${prov}, model: "${reasoning}" }
+    long_context: { provider: ${prov}, model: "${long_ctx}" }
+EOF
+}
+
 # --- MCP: gbrain (долговременная память) ------------------------------------
 gbrain_block() {
   [[ "${GBRAIN_ENABLED}" == "true" ]] || return 0
@@ -262,6 +295,7 @@ mcp_out="$(gbrain_block; grafify_block; second_brain_mcp_block)"
   providers_block
   voice_block
   auxiliary_block
+  smart_routing_block
   if [[ -n "${mcp_out//[$'\n\t ']/}" ]]; then
     echo ""
     echo "mcp_servers:"

@@ -35,6 +35,16 @@ RUN python3 -m venv /opt/tools/gfx \
     && /opt/tools/gfx/bin/pip install --no-cache-dir "graphifyy[mcp]" \
     && /opt/tools/gfx/bin/graphify --help >/dev/null 2>&1 || true
 
+# --- Smart model routing: плагин hermes-smart-model-routing (опционально) ----
+# Тиро-роутинг основной модели по сложности входа. Ставится в образ, но
+# АКТИВИРУЕТСЯ только при SMART_ROUTING_ENABLED=true (entrypoint пишет блок
+# smart_model_routing в config.yaml). Установка терпима к сбою (|| true), как у
+# graphify: сток-деплой не зависит от доступности внешнего репозитория на сборке.
+# Полная активация плагина зависит от core-хука hermes (см. README плагина).
+RUN pip install --no-cache-dir \
+        "git+https://github.com/Waylish/hermes-smart-model-routing" \
+        >/dev/null 2>&1 || echo "smart-model-routing: плагин не установлен (опционально)"
+
 # --- Yandex SpeechKit: command-провайдеры STT/TTS для hermes -----------------
 # hermes вызывает эти скрипты как основной движок голоса (см. entrypoint).
 COPY speechkit/ /opt/second_brain/speechkit/
