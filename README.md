@@ -67,6 +67,27 @@ Telegram ──> hermes-agent (Telegram gateway)
 Провайдер **`yandex`** появляется в `/model` автоматически: entrypoint
 регистрирует его как кастомный OpenAI-совместимый провайдер (`providers.yandex`
 в `config.yaml`) при заданных `YANDEX_CLOUD_API_KEY` + `YANDEX_CLOUD_FOLDER_ID`.
+
+### Авто-роутинг модели по сложности (`smart_model_routing`, опционально)
+
+Плагин [hermes-smart-model-routing](https://github.com/Waylish/hermes-smart-model-routing)
+выбирает модель **автоматически по сложности входа**: короткая заметка → дешёвая
+модель (напр. `gemini-3-flash`), рассуждение/длинный контекст → сильная (напр.
+`claude-opus`). Это **дополняет, а не дублирует** ручной `/model` и cost-флоу
+слоя 9 (`Promts/09_feedback_and_model_switch.md` + `list_models_by_price`):
+роутер срабатывает автоматически **до** них.
+
+По умолчанию **ВЫКЛ** (сток-деплой не трогается неизвестным ключом конфига).
+Включение — `SMART_ROUTING_ENABLED=true` + тир-модели `SMART_ROUTING_*` (см.
+`env.example`); entrypoint пишет блок `smart_model_routing` в `config.yaml`.
+Плагин ставится в образ (`Dockerfile`, установка терпима к сбою).
+
+> Второй репозиторий, [hermes-agent-skills](https://github.com/zad111ak-ai/hermes-agent-skills),
+> **намеренно не подключён**: его мета-скиллы уже покрыты стеком —
+> сжатие контекста → `auxiliary.compression`; QA/само-проверка и переключение
+> модели по фидбеку → конвейер `Promts/*` (слои 03/04e/08/09); долговременная
+> память → gbrain. «Внедрить без дублирования» = взять только реальный пробел
+> (авто-роутинг), а не переносить уже существующее.
 В пикере предлагаются `yandexgpt/latest` и `yandexgpt-lite/latest`.
 
 «Каждый процесс, которому нужен LLM», настраивается отдельно:
