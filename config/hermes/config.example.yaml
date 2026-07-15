@@ -49,8 +49,8 @@ auxiliary:
     summary_model: "google/gemini-3-flash-preview"
 
 # Тиро-роутинг по сложности входа (плагин hermes-smart-model-routing).
-# Пишется в config.yaml только при SMART_ROUTING_ENABLED=true (по умолчанию OFF,
-# чтобы сток-деплой не ломался неизвестным ключом). Дополняет, а не дублирует
+# Пишется в config.yaml при SMART_ROUTING_ENABLED=true (включено по умолчанию;
+# отключение — SMART_ROUTING_ENABLED=false). Дополняет, а не дублирует
 # ручной /model и cost-флоу слоя 9 (Promts/09 + list_models_by_price): роутер
 # выбирает модель автоматически ДО них — дешёвую для коротких заметок, сильную
 # для рассуждений и длинного контекста.

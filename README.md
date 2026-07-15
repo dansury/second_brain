@@ -77,10 +77,11 @@ Telegram ──> hermes-agent (Telegram gateway)
 слоя 9 (`Promts/09_feedback_and_model_switch.md` + `list_models_by_price`):
 роутер срабатывает автоматически **до** них.
 
-По умолчанию **ВЫКЛ** (сток-деплой не трогается неизвестным ключом конфига).
-Включение — `SMART_ROUTING_ENABLED=true` + тир-модели `SMART_ROUTING_*` (см.
-`env.example`); entrypoint пишет блок `smart_model_routing` в `config.yaml`.
-Плагин ставится в образ (`Dockerfile`, установка терпима к сбою).
+Включено **по умолчанию** (`SMART_ROUTING_ENABLED=true`); тир-модели —
+`SMART_ROUTING_*` (см. `env.example`), по умолчанию `cheap=gemini-3-flash`,
+остальные = `LLM_MODEL`. Отключение — `SMART_ROUTING_ENABLED=false`. Entrypoint
+пишет блок `smart_model_routing` в `config.yaml`; плагин ставится в образ
+(`Dockerfile`, установка терпима к сбою).
 
 > Второй репозиторий, [hermes-agent-skills](https://github.com/zad111ak-ai/hermes-agent-skills),
 > **намеренно не подключён**: его мета-скиллы уже покрыты стеком —
