@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { lookupCharacter, upsertCharacter } from "./lib/characters.js";
 import { writeEntry, searchVault } from "./lib/entries.js";
+import { setDecisionOutcome, DECISION_STATUSES } from "./lib/decisions.js";
 import { recordFeedback } from "./lib/feedback.js";
 import { listModelsByPrice } from "./lib/models.js";
 import { rememberHandwriting, getHandwritingProfile } from "./lib/handwriting.js";
@@ -51,13 +52,27 @@ server.tool(
 
 server.tool(
   "search_vault",
-  "Текстовый/метаданный поиск по vault (дополняет семантический поиск gbrain). Используется слоем 4c для прецедентов.",
+  "Текстовый/метаданный поиск по vault (дополняет семантический поиск gbrain). Используется слоем 4c для прецедентов " +
+    "(status: outcome-good/outcome-bad — решённые прецеденты) и слоем 4f для поиска решения, чей исход сообщил пользователь (status: open).",
   {
     query: z.string(),
     type: z.enum(["journal", "decision", "document", "photo-people", "handwriting"]).optional(),
+    status: z.enum(DECISION_STATUSES).optional().describe("Фильтр по frontmatter status (для type: decision)"),
     limit: z.number().int().positive().max(100).optional().default(20),
   },
   async (args) => asJsonResult(await searchVault(args))
+);
+
+server.tool(
+  "set_decision_outcome",
+  "Проставить исход прошлого решения в Decisions/: frontmatter status (open|outcome-good|outcome-bad) + секция «Исход». " +
+    "Слой 4f — именно эти статусы делают запись прецедентом для слоя 4c. См. Promts/04f_decision_outcome.md.",
+  {
+    ref: z.string().describe("path из результата search_vault (Decisions/….md) или [[wikilink]] записи решения"),
+    status: z.enum(DECISION_STATUSES),
+    note: z.string().optional().describe("Чем закончилось — словами пользователя"),
+  },
+  async (args) => asJsonResult(await setDecisionOutcome(args))
 );
 
 server.tool(

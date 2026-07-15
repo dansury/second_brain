@@ -96,7 +96,7 @@ async function walkMarkdown(dir, acc = []) {
  * Текстовый/метаданный поиск по vault-у — дополняет семантический поиск
  * gbrain (ТЗ §10.1). Используется слоем 4c для поиска прецедентов.
  */
-export async function searchVault({ query, type, limit = 20 }) {
+export async function searchVault({ query, type, status, limit = 20 }) {
   const files = await walkMarkdown(VAULT_PATH);
   const q = String(query ?? "").trim().toLowerCase();
   const results = [];
@@ -105,6 +105,7 @@ export async function searchVault({ query, type, limit = 20 }) {
     const raw = await fs.readFile(filePath, "utf8");
     const { frontmatter, body } = parseFrontmatter(raw);
     if (type && frontmatter.type !== type) continue;
+    if (status && (frontmatter.status || "open") !== status) continue;
 
     const haystack = `${JSON.stringify(frontmatter)}\n${body}`.toLowerCase();
     if (q && !haystack.includes(q)) continue;
