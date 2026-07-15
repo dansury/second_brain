@@ -7,7 +7,7 @@ import path from "node:path";
 // импорте — поэтому создаём временный vault и задаём env ДО динамического
 // импорта библиотек (см. tools/second-brain-mcp/README.md).
 let vaultDir;
-let characters, entries, feedback, handwriting;
+let characters, entries, feedback, handwriting, decisions;
 
 beforeAll(async () => {
   vaultDir = await fs.mkdtemp(path.join(os.tmpdir(), "second-brain-vault-"));
@@ -16,6 +16,7 @@ beforeAll(async () => {
   entries = await import("./entries.js");
   feedback = await import("./feedback.js");
   handwriting = await import("./handwriting.js");
+  decisions = await import("./decisions.js");
 });
 
 describe("characters", () => {
@@ -81,6 +82,82 @@ describe("entries", () => {
     const results = await entries.searchVault({ query: "переход", type: "decision" });
     expect(results.length).toBe(1);
     expect(results[0].status).toBe("open");
+  });
+});
+
+describe("decisions (слой 4f)", () => {
+  test("set_decision_outcome проставляет исход и дописывает секцию «Исход»", async () => {
+    const { path: absPath } = await entries.writeEntry({
+      type: "decision",
+      frontmatter: { title: "отпуск", status: "open" },
+      body: "Стоит ли брать отпуск в июле?",
+      date: "2026-07-01",
+    });
+    const rel = path.relative(vaultDir, absPath);
+
+    const result = await decisions.setDecisionOutcome({
+      ref: rel,
+      status: "outcome-good",
+      note: "Отпуск удался, вернулся отдохнувшим",
+    });
+    expect(result.changed).toBe(true);
+    expect(result.previous).toBe("open");
+
+    const raw = await fs.readFile(absPath, "utf8");
+    expect(raw).toContain("status: outcome-good");
+    expect(raw).toContain("## Исход (");
+    expect(raw).toContain("Отпуск удался");
+  });
+
+  test("повторный вызов с тем же статусом без note — no-op", async () => {
+    const rel = "Decisions/2026-07-01-отпуск.md";
+    const before = await fs.readFile(path.join(vaultDir, rel), "utf8");
+    const result = await decisions.setDecisionOutcome({ ref: rel, status: "outcome-good" });
+    expect(result.changed).toBe(false);
+    expect(await fs.readFile(path.join(vaultDir, rel), "utf8")).toBe(before);
+  });
+
+  test("принимает wikilink и голый slug без Decisions/ и .md", async () => {
+    await entries.writeEntry({
+      type: "decision",
+      frontmatter: { title: "переезд", status: "open" },
+      body: "Переезжать ли в другой город?",
+      date: "2026-07-02",
+    });
+
+    const viaWikilink = await decisions.setDecisionOutcome({
+      ref: "[[Decisions/2026-07-02-переезд]]",
+      status: "outcome-bad",
+      note: "Пожалел через месяц",
+    });
+    expect(viaWikilink.changed).toBe(true);
+
+    const viaSlug = await decisions.setDecisionOutcome({ ref: "2026-07-02-переезд", status: "outcome-bad" });
+    expect(viaSlug.changed).toBe(false);
+    expect(viaSlug.previous).toBe("outcome-bad");
+  });
+
+  test("отклоняет не-decision записи, неизвестный ref и недопустимый статус", async () => {
+    expect(decisions.setDecisionOutcome({ ref: "Journal/2026/07/2026-07-13.md", status: "outcome-good" })).rejects.toThrow(
+      /а не decision/
+    );
+    expect(decisions.setDecisionOutcome({ ref: "Decisions/нет-такого.md", status: "outcome-good" })).rejects.toThrow(
+      /не найдена/
+    );
+    expect(decisions.setDecisionOutcome({ ref: "2026-07-02-переезд", status: "победа" })).rejects.toThrow(
+      /недопустимый status/
+    );
+    expect(decisions.setDecisionOutcome({ ref: "../за-пределами", status: "open" })).rejects.toThrow(/пределы vault/);
+  });
+
+  test("search_vault фильтрует по status — решённые прецеденты для слоя 4c", async () => {
+    const good = await entries.searchVault({ query: "", type: "decision", status: "outcome-good" });
+    expect(good.map((r) => r.path)).toContain("Decisions/2026-07-01-отпуск.md");
+    expect(good.every((r) => r.status === "outcome-good")).toBe(true);
+
+    const open = await entries.searchVault({ query: "", type: "decision", status: "open" });
+    expect(open.map((r) => r.path)).not.toContain("Decisions/2026-07-01-отпуск.md");
+    expect(open.map((r) => r.path)).toContain("Decisions/2026-07-13-переход_в_новый_проект.md");
   });
 });
 

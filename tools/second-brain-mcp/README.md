@@ -1,11 +1,12 @@
 # second-brain-mcp
 
-MCP-сервер (stdio), реализующий инструменты для слоёв 2, 4c, 6-9 конвейера
-из [`../../ТЗ.md`](../../ТЗ.md) — персоны, запись в Obsidian-vault, feedback
-и список моделей по цене. Владеет vault-ом на файловой системе, не хранит
-состояние вне него (идемпотентен по перезапуску).
+MCP-сервер (stdio), реализующий инструменты для слоёв 2, 4c, 4f, 6-9 конвейера
+из [`../../ТЗ.md`](../../ТЗ.md) — персоны, запись в Obsidian-vault, исходы
+решений, feedback и список моделей по цене. Владеет vault-ом на файловой
+системе, не хранит состояние вне него (идемпотентен по перезапуску).
 
-Реализует первую итерацию (M1 в дорожной карте ТЗ §12) — 8 инструментов.
+Реализует M1 (дорожная карта ТЗ §12, 8 инструментов) и M2 (`set_decision_outcome`
+для слоя 4f + фильтр `status` в `search_vault` для прецедентов 4c).
 Vision-зависимые слои (6, 7) используют собственный анализ модели через
 image input; этот сервер даёт им только память дизамбигуации и профили
 почерков, сам анализ изображения не делает.
@@ -33,7 +34,8 @@ VAULT_PATH=/opt/data/vault bun run src/index.js
 | `lookup_character` | 2 | `src/lib/characters.js` |
 | `upsert_character` | 2, 8 | `src/lib/characters.js` |
 | `obsidian_write_entry` | 8 | `src/lib/entries.js` |
-| `search_vault` | 4c | `src/lib/entries.js` |
+| `search_vault` | 4c, 4f | `src/lib/entries.js` |
+| `set_decision_outcome` | 4f | `src/lib/decisions.js` |
 | `record_feedback` | 9 | `src/lib/feedback.js` |
 | `list_models_by_price` | 9 | `src/lib/models.js` |
 | `remember_handwriting` | 7 | `src/lib/handwriting.js` |
