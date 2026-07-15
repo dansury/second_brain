@@ -3,9 +3,10 @@
 # =============================================================================
 # Базируется на официальном образе hermes-agent (Telegram-шлюз, s6-overlay,
 # python + node уже внутри) и добавляет:
-#   • bun + gbrain  — долговременная память (MCP stdio-сервер)
-#   • graphify      — граф знаний по коду в изолированном venv (MCP)
-#   • cont-init хук  — сборка config.yaml из переменных окружения на старте
+#   • bun + gbrain      — долговременная память (MCP stdio-сервер)
+#   • graphify          — граф знаний по коду в изолированном venv (MCP)
+#   • second-brain-mcp  — дневник-консультант: персоны/vault/feedback (см. ТЗ.md)
+#   • cont-init хук      — сборка config.yaml + SOUL.md из окружения на старте
 #
 # Ядро LLM — OpenRouter; эмбеддинги памяти — Yandex Cloud (см. env.example).
 # =============================================================================
@@ -39,6 +40,16 @@ RUN python3 -m venv /opt/tools/gfx \
 COPY speechkit/ /opt/second_brain/speechkit/
 RUN chmod +x /opt/second_brain/speechkit/*.sh
 
+# --- second-brain-mcp: MCP-сервер дневника-консультанта (см. ТЗ.md) ---------
+# Персоны, запись в Obsidian-vault, feedback, список моделей по цене.
+# Тот же bun, что и для gbrain (BUN_INSTALL=/usr/local выше).
+COPY tools/second-brain-mcp/ /opt/second_brain/tools/second-brain-mcp/
+RUN cd /opt/second_brain/tools/second-brain-mcp && bun install --production
+
+# --- Promts: многослойный промт конвейера second_brain (ТЗ.md §9) -----------
+# entrypoint.sh собирает эти файлы в $HERMES_HOME/SOUL.md при каждом старте.
+COPY Promts/ /opt/second_brain/Promts/
+
 # --- Grafify: зашитый граф этого репозитория (MCP-инструмент включён) --------
 # hermes поднимает graphify.serve на этом графе (GRAFIFY_ENABLED=true).
 # Свой граф пользователь может смонтировать в /opt/data/graphify-out/.
@@ -58,6 +69,7 @@ RUN chmod +x /etc/cont-init.d/50-second-brain
 ENV HERMES_HOME=/opt/data
 ENV GBRAIN_HOME=/opt/data/gbrain
 ENV GRAFIFY_PYTHON=/opt/tools/gfx/bin/python
+ENV VAULT_PATH=/opt/data/vault
 
 # ENTRYPOINT (/init + main-wrapper) наследуется из базового образа.
 # CMD запускает мессенджер-шлюз (Telegram и др. по заданным переменным).
