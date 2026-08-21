@@ -24,6 +24,116 @@ VAULT_PATH="${VAULT_PATH:-${HERMES_HOME}/vault}"
 SECOND_BRAIN_MCP_ENABLED="${SECOND_BRAIN_MCP_ENABLED:-true}"
 SECOND_BRAIN_DIR="${SECOND_BRAIN_DIR:-/opt/second_brain}"
 
+# --- Страховка накопленных данных при смене версии ядра ----------------------
+# Образ пересобирается (обновление hermes) — данные остаются в томе: мозг
+# gbrain с индексом поиска, vault, граф, состояние шлюза. Если новая версия
+# ядра мигрирует их несовместимо, откатывать будет нечего. Поэтому версия
+# ядра, зашитая в образ (/opt/second_brain/BASE_IMAGE), сравнивается с
+# записанной в томе, и при расхождении СНАЧАЛА снимается снимок состояния —
+# до того, как новая версия впервые тронет том.
+#   STATE_BACKUP_ENABLED=false  — выключить страховку целиком
+#   STATE_BACKUP_REQUIRED=false — не блокировать старт, если снимок не удался
+STATE_BACKUP_ENABLED="${STATE_BACKUP_ENABLED:-true}"
+STATE_BACKUP_REQUIRED="${STATE_BACKUP_REQUIRED:-true}"
+BASE_IMAGE_FILE="${BASE_IMAGE_FILE:-${SECOND_BRAIN_DIR}/BASE_IMAGE}"
+STATE_DIR="${HERMES_HOME}/.second_brain"
+STATE_FILE="${STATE_DIR}/state.json"
+VERSIONS_LOG="${STATE_DIR}/versions.log"
+SNAPSHOT_SH="${SECOND_BRAIN_DIR}/scripts/state-snapshot.sh"
+
+baked_base_image() {
+  if [[ -f "${BASE_IMAGE_FILE}" ]]; then tr -d '\n' < "${BASE_IMAGE_FILE}"; else printf 'unknown'; fi
+}
+
+recorded_base_image() {
+  [[ -f "${STATE_FILE}" ]] || return 0
+  sed -n 's/.*"base_image": *"\([^"]*\)".*/\1/p' "${STATE_FILE}" | head -n1
+}
+
+# Есть ли что терять: непустой мозг, vault или прежний конфиг в томе.
+has_accumulated_state() {
+  [[ -d "${GBRAIN_HOME}" ]] && [[ -n "$(ls -A "${GBRAIN_HOME}" 2>/dev/null)" ]] && return 0
+  [[ -d "${VAULT_PATH}" ]]  && [[ -n "$(ls -A "${VAULT_PATH}" 2>/dev/null)" ]]  && return 0
+  [[ -f "${CONFIG}" ]] && return 0
+  return 1
+}
+
+# Коды state-snapshot.sh: 0 — снимок сделан, 20 — пропущен по лимиту размера,
+# остальное — ошибка.
+# $1 — причина, $2 — версия ядра, которой принадлежат данные (для метаданных
+# снимка: при обновлении это ПРЕЖНЯЯ версия, а не та, что уже в образе).
+run_snapshot() {
+  local reason="$1" data_version="${2:-}"
+  if [[ "${STATE_BACKUP_ENABLED}" != "true" ]]; then
+    log "STATE_BACKUP_ENABLED=false — снимок состояния пропущен (откат данных будет невозможен)."
+    return 0
+  fi
+  [[ -x "${SNAPSHOT_SH}" ]] || { log "Не найден ${SNAPSHOT_SH} — снимок пропущен."; return 1; }
+
+  local rc=0
+  HERMES_HOME="${HERMES_HOME}" BASE_IMAGE_FILE="${BASE_IMAGE_FILE}" \
+    SNAPSHOT_BASE_IMAGE="${data_version}" \
+    bash "${SNAPSHOT_SH}" create "${reason}" >/dev/null 2>&1 || rc=$?
+  case "${rc}" in
+    0)  log "Снимок состояния сделан (причина: ${reason})." ;;
+    20) log "Снимок пропущен: данные больше STATE_BACKUP_MAX_MB. Снимите вручную:"
+        log "  bash ${SNAPSHOT_SH} create ${reason}   (или поднимите STATE_BACKUP_MAX_MB)" ;;
+    *)  log "Снимок состояния НЕ УДАЛСЯ (код ${rc}) — место на томе?"; return 1 ;;
+  esac
+  return 0
+}
+
+write_state() {
+  local current="$1" previous="${2:-}"
+  mkdir -p "${STATE_DIR}"
+  cat > "${STATE_FILE}" <<EOF
+{
+  "base_image": "${current}",
+  "previous_base_image": "${previous}",
+  "updated_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+}
+EOF
+  printf '%s\t%s\t%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${previous:--}" "${current}" >> "${VERSIONS_LOG}"
+}
+
+version_guard() {
+  local current previous
+  current="$(baked_base_image)"
+  previous="$(recorded_base_image)"
+
+  if [[ "${current}" == "${previous}" ]]; then
+    log "Версия ядра не менялась: ${current}"
+    return 0
+  fi
+
+  if [[ -z "${previous}" ]]; then
+    # Первый старт со страховкой. Если в томе уже есть накопленное — снимаем
+    # базовый снимок, иначе откатываться потом будет не на что.
+    if has_accumulated_state; then
+      log "Первый старт со страховкой — снимаю базовый снимок накопленных данных."
+      run_snapshot "baseline" "${current}" || log "Базовый снимок не сделан — старт продолжается."
+    else
+      log "Том пуст — снимок не нужен. Фиксирую версию ядра: ${current}"
+    fi
+  else
+    log "СМЕНА ВЕРСИИ ЯДРА: ${previous}"
+    log "                → ${current}"
+    if ! run_snapshot "upgrade" "${previous}"; then
+      if [[ "${STATE_BACKUP_REQUIRED}" == "true" ]]; then
+        log "Старт остановлен: новая версия ядра не должна трогать данные без снимка."
+        log "Варианты: освободить место на томе; STATE_BACKUP_REQUIRED=false для старта"
+        log "без страховки; либо откатить версию (scripts/hermes-update.sh rollback)."
+        exit 1
+      fi
+      log "STATE_BACKUP_REQUIRED=false — стартую без снимка."
+    fi
+    log "Откат данных при проблемах: bash ${SNAPSHOT_SH} restore last"
+    log "Откат версии ядра:          scripts/hermes-update.sh rollback (в репозитории)"
+  fi
+
+  write_state "${current}" "${previous}"
+}
+
 # --- Обязательные переменные -------------------------------------------------
 : "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN не задан — получите токен у @BotFather}"
 : "${OPENROUTER_API_KEY:?OPENROUTER_API_KEY не задан — ключ на https://openrouter.ai/keys}"
@@ -287,6 +397,10 @@ write_soul() {
 }
 
 # --- Сборка config.yaml ------------------------------------------------------
+# Страховка данных выполняется ДО записи конфига и инициализации gbrain —
+# так снимок отражает состояние, с которым работала прошлая версия ядра.
+version_guard
+
 log "Пишу ${CONFIG} (провайдер=${LLM_PROVIDER}, модель=${LLM_MODEL})"
 mkdir -p "${VAULT_PATH}"
 write_soul

@@ -9,6 +9,10 @@ data/
 gbrain/
 *.log
 
+# Снимки состояния тома (scripts/state-snapshot.sh) — живут в /opt/data,
+# в репозиторий не попадают даже при локальном запуске скрипта.
+backups/
+
 # Граф Grafify: коммитим сам граф, но не локальный кэш/анализ
 graphify-out/cache/
 graphify-out/.graphify_analysis.json
