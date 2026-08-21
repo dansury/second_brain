@@ -51,10 +51,17 @@ COPY speechkit/ /opt/second_brain/speechkit/
 RUN chmod +x /opt/second_brain/speechkit/*.sh
 
 # --- second-brain-mcp: MCP-сервер дневника-консультанта (см. ТЗ.md) ---------
-# Персоны, запись в Obsidian-vault, feedback, список моделей по цене.
+# Персоны, запись в Obsidian-vault, feedback, выбор модели (топ бесплатных
+# OpenRouter, цена вызова, политика слоёв).
 # Тот же bun, что и для gbrain (BUN_INSTALL=/usr/local выше).
 COPY tools/second-brain-mcp/ /opt/second_brain/tools/second-brain-mcp/
 RUN cd /opt/second_brain/tools/second-brain-mcp && bun install --production
+
+# --- config/: политика слоёв и курс валюты ----------------------------------
+# layer_policy.json (какие слои живут на бесплатной модели) и fx.json (USD→RUB
+# для оценки стоимости вызова) читает MCP-сервер по SECOND_BRAIN_DIR. Без них
+# он деградирует в «все слои некритичны, курс 90», что не то, что задумано.
+COPY config/ /opt/second_brain/config/
 
 # --- Promts: многослойный промт конвейера second_brain (ТЗ.md §9) -----------
 # entrypoint.sh собирает эти файлы в $HERMES_HOME/SOUL.md при каждом старте.
