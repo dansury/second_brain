@@ -137,6 +137,28 @@ auxiliary:
 EOF
 }
 
+# --- Топ-1 бесплатная модель OpenRouter --------------------------------------
+# Каталог бесплатных моделей (tools/second-brain-mcp/src/lib/freeCatalog.js):
+# нулевая цена в каталоге OpenRouter + рейтинг shir-man. Результат кэшируется
+# на томе (${DATA_DIR}/free_models.json, 24 ч), поэтому запуск дешёвый.
+# Fail-soft: сеть недоступна — переменная остаётся пустой, вызывающий берёт
+# свой фолбэк.
+FREE_TOP1=""
+resolve_free_top1() {
+  [[ "${FREE_MODELS_ENABLED:-true}" == "true" ]] || return 0
+  command -v bun >/dev/null 2>&1 || { log "bun не найден — бесплатный каталог пропущен."; return 0; }
+  local script="${SECOND_BRAIN_DIR}/tools/second-brain-mcp/scripts/free-top1.mjs"
+  [[ -f "${script}" ]] || return 0
+  FREE_TOP1="$(SECOND_BRAIN_DIR="${SECOND_BRAIN_DIR}" DATA_DIR="${HERMES_HOME}" \
+    OPENROUTER_API_KEY="${OPENROUTER_API_KEY:-}" \
+    timeout 30 bun run "${script}" 2>/dev/null || true)"
+  if [[ -n "${FREE_TOP1}" ]]; then
+    log "Топ-1 бесплатная модель OpenRouter: ${FREE_TOP1}"
+  else
+    log "Бесплатный каталог недоступен — cheap-тир возьмёт фолбэк."
+  fi
+}
+
 # --- Smart model routing (плагин hermes-smart-model-routing) -----------------
 # Авто-роутинг основной модели по сложности входа: короткая заметка → дешёвая
 # модель, рассуждение/длинный контекст → сильная. НЕ дублирует ручной выбор
@@ -146,7 +168,10 @@ EOF
 # пишется). Плагин ставится в образ Dockerfile-ом. Тиры → модели OpenRouter.
 smart_routing_block() {
   [[ "${SMART_ROUTING_ENABLED:-true}" == "true" ]] || return 0
-  local cheap="${SMART_ROUTING_CHEAP_MODEL:-google/gemini-3-flash-preview}"
+  # cheap-тир по умолчанию — топ-1 БЕСПЛАТНАЯ модель OpenRouter (короткая
+  # заметка не стоит платного вызова). Явный SMART_ROUTING_CHEAP_MODEL всегда
+  # сильнее; каталог недоступен → прежний платно-дешёвый фолбэк.
+  local cheap="${SMART_ROUTING_CHEAP_MODEL:-${FREE_TOP1:-google/gemini-3-flash-preview}}"
   local standard="${SMART_ROUTING_STANDARD_MODEL:-${LLM_MODEL:-anthropic/claude-opus-4.6}}"
   local code="${SMART_ROUTING_CODE_MODEL:-${standard}}"
   local reasoning="${SMART_ROUTING_REASONING_MODEL:-${LLM_MODEL:-anthropic/claude-opus-4.6}}"
@@ -229,6 +254,8 @@ second_brain_mcp_block() {
     env:
       VAULT_PATH: "${VAULT_PATH}"
       OPENROUTER_API_KEY: "${OPENROUTER_API_KEY:-}"
+      SECOND_BRAIN_DIR: "${SECOND_BRAIN_DIR}"
+      DATA_DIR: "${HERMES_HOME}"
 EOF
 }
 
@@ -289,6 +316,7 @@ write_soul() {
 log "Пишу ${CONFIG} (провайдер=${LLM_PROVIDER}, модель=${LLM_MODEL})"
 mkdir -p "${VAULT_PATH}"
 write_soul
+resolve_free_top1
 mcp_out="$(gbrain_block; grafify_block; second_brain_mcp_block)"
 {
   provider_block
