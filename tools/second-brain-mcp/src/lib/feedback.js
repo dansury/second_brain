@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { VAULT_PATH } from "./paths.js";
+import { vaultPath } from "./paths.js";
 
-const FEEDBACK_PATH = path.join(VAULT_PATH, "Wiki", "Feedback.md");
+const feedbackPath = () => vaultPath("Wiki", "Feedback.md");
 const HEADER = "# Feedback\n\nЖурнал реакций 👍/👎 на ответы бота — см. ТЗ §7.\n";
 
 /**
@@ -14,11 +14,11 @@ export async function recordFeedback({ rating, reason, model, layer, context }) 
     throw new Error('record_feedback: rating должен быть "up" или "down"');
   }
 
-  await fs.mkdir(path.dirname(FEEDBACK_PATH), { recursive: true });
+  await fs.mkdir(path.dirname(feedbackPath()), { recursive: true });
 
   let existing = "";
   try {
-    existing = await fs.readFile(FEEDBACK_PATH, "utf8");
+    existing = await fs.readFile(feedbackPath(), "utf8");
   } catch (err) {
     if (err.code !== "ENOENT") throw err;
     existing = HEADER;
@@ -38,6 +38,6 @@ export async function recordFeedback({ rating, reason, model, layer, context }) 
     .filter((line) => line !== null)
     .join("\n");
 
-  await fs.writeFile(FEEDBACK_PATH, existing + section, "utf8");
-  return { path: FEEDBACK_PATH };
+  await fs.writeFile(feedbackPath(), existing + section, "utf8");
+  return { path: feedbackPath() };
 }

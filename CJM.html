@@ -120,7 +120,7 @@
 </header>
 
 <div class="progress">
-  <span id="progress-label">0 / 9 сценариев открыто</span>
+  <span id="progress-label">0 / 10 сценариев открыто</span>
   <span class="track"><span class="fill" id="progress-fill"></span></span>
 </div>
 
@@ -136,23 +136,48 @@
       <span class="num">1</span>
       <span class="summary-text">
         <div class="title">Онбординг источника</div>
-        <div class="sub">Канал-дневник или чат «Избранное» → бот-админ</div>
+        <div class="sub">Канал-дневник, группа или чат «Избранное» → бот-админ</div>
       </span>
       <span class="chev">›</span>
     </summary>
     <div class="journey-body">
       <ol class="steps">
-        <li class="step"><div class="who">Пользователь</div><div class="what">Добавляет бота администратором в канал-дневник, либо в личный чат с самим собой / пересылает из «Избранного».</div></li>
-        <li class="step"><div class="who">Бот</div><div class="what">Подтверждает подключение источника, объясняет, что будет читать новые посты автоматически.</div><span class="layer">слой 0 · роутинг</span></li>
+        <li class="step"><div class="who">Пользователь</div><div class="what">Добавляет бота администратором в канал-дневник или группу, либо в личный чат с самим собой / пересылает из «Избранного».</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Подтверждает подключение источника и сразу берётся за <b>всю прошлую историю</b>, а не только за новые посты — сценарий 2.</div><span class="layer">слой 0 · роутинг</span></li>
         <li class="step"><div class="who">Бот</div><div class="what">С этого момента каждый новый пост/сообщение источника уходит в конвейер слоёв 1–9.</div></li>
       </ol>
-      <div class="note"><b>Важно:</b> один источник = один владелец. Групповые чаты с несколькими людьми — вне v1.</div>
+      <div class="note"><b>Важно:</b> один источник = один владелец. Групповые чаты с несколькими людьми как отдельный сценарий — вне v1; историю группы бот прочитать умеет, но пишет дневник владельца.</div>
+    </div>
+  </details>
+
+
+  <details class="journey">
+    <summary>
+      <span class="num">2</span>
+      <span class="summary-text">
+        <div class="title">Чтение всей истории источника</div>
+        <div class="sub">Канал/группа целиком, а не «с сегодняшнего дня»</div>
+      </span>
+      <span class="chev">›</span>
+    </summary>
+    <div class="journey-body">
+      <ol class="steps">
+        <li class="step"><div class="who">Пользователь</div><div class="what">Подключил канал/группу — или просит прямо: «прочитай весь канал», «подтяни старые посты».</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Сначала смотрит, что уже импортировано по этому чату (<code>history_import_status</code>) — чтобы не читать одно и то же дважды.</div><span class="layer">слой 10 · импорт истории</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Публичный канал/группа: вычитывает архив постранично с веб-превью <code>t.me/s/&lt;username&gt;</code> — Telegram Bot API историю не отдаёт. Каждая запись ложится в <code>Journal/</code> <b>датой оригинального сообщения</b> и со ссылкой на него.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Приватный источник, превью нет: просит выгрузку — Telegram Desktop → Экспорт данных → JSON — и импортирует историю из файла. Пересылать сотни сообщений руками не нужно.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Через слои 2–4 прогоняет только свежий срез (≤20 записей): персоны, классификация, открытые решения. Остальное лежит в базе и всплывает лениво — как прецедент слоя 4c.</div><span class="layer">слои 2–4 · только свежее</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Отчитывается: «Прочитал канал @my_diary целиком: 412 записей с 2023-11-04 по сегодня».</div>
+          <div class="fb"><span class="up">👍</span><span class="down">👎</span></div>
+        </li>
+      </ol>
+      <div class="note"><b>Идемпотентно:</b> повторный вызов дублей не создаёт (id импортированного + проверка ссылки в файле дня). Догрузка — только сообщения новее последнего импортированного. Если история подтянулась частично (сеть, лимит страниц) — бот скажет об этом и предложит догрузить.</div>
     </div>
   </details>
 
   <details class="journey">
     <summary>
-      <span class="num">2</span>
+      <span class="num">3</span>
       <span class="summary-text">
         <div class="title">Обычная дневниковая запись</div>
         <div class="sub">Текст в канале/чате → структурированная заметка в Obsidian</div>
@@ -176,7 +201,7 @@
 
   <details class="journey">
     <summary>
-      <span class="num">3</span>
+      <span class="num">4</span>
       <span class="summary-text">
         <div class="title">Голос / видео / видео-кружок</div>
         <div class="sub">Автоматическое распознавание речи → дневниковая запись</div>
@@ -187,14 +212,14 @@
       <ol class="steps">
         <li class="step"><div class="who">Пользователь</div><div class="what">Записывает голосовое или видео-кружок вместо текста.</div></li>
         <li class="step"><div class="who">Бот</div><div class="what">Распознаёт речь (Yandex SpeechKit STT) и прогоняет LLM-очистку текста от слов-паразитов и оговорок.</div><span class="layer">слой 1 · транскрибация</span></li>
-        <li class="step"><div class="who">Бот</div><div class="what">Дальше — как обычная текстовая запись (сценарий 2): персоны → классификация → lint → фидбек.</div></li>
+        <li class="step"><div class="who">Бот</div><div class="what">Дальше — как обычная текстовая запись (сценарий 3): персоны → классификация → lint → фидбек.</div></li>
       </ol>
     </div>
   </details>
 
   <details class="journey">
     <summary>
-      <span class="num">4</span>
+      <span class="num">5</span>
       <span class="summary-text">
         <div class="title">Сомнение / решение → консультация</div>
         <div class="sub">Многослойный прогноз удачности решения</div>
@@ -218,7 +243,7 @@
 
   <details class="journey">
     <summary>
-      <span class="num">5</span>
+      <span class="num">6</span>
       <span class="summary-text">
         <div class="title">Присланный документ</div>
         <div class="sub">Уточняющие вопросы прежде, чем сохранить</div>
@@ -237,7 +262,7 @@
 
   <details class="journey">
     <summary>
-      <span class="num">6</span>
+      <span class="num">7</span>
       <span class="summary-text">
         <div class="title">Фото с людьми</div>
         <div class="sub">Кто есть кто, позы, мизансцена, эмоции</div>
@@ -247,7 +272,7 @@
     <div class="journey-body">
       <ol class="steps">
         <li class="step"><div class="who">Пользователь</div><div class="what">Присылает фото, на котором есть люди.</div></li>
-        <li class="step"><div class="who">Бот</div><div class="what">По каждому распознанному лицу уточняет «кто есть кто» (сверка с <code>People/</code>, как в сценарии 2).</div><span class="layer">слой 6</span></li>
+        <li class="step"><div class="who">Бот</div><div class="what">По каждому распознанному лицу уточняет «кто есть кто» (сверка с <code>People/</code>, как в сценарии 3).</div><span class="layer">слой 6</span></li>
         <li class="step"><div class="who">Бот</div><div class="what">Анализирует позы, взаимное расположение людей, что происходит, выражения лиц.</div></li>
         <li class="step"><div class="who">Бот</div><div class="what">Присылает анализ, предлагает редактуру формулировок.</div>
           <div class="fb"><span class="up">👍</span><span class="down">👎</span></div>
@@ -259,7 +284,7 @@
 
   <details class="journey">
     <summary>
-      <span class="num">7</span>
+      <span class="num">8</span>
       <span class="summary-text">
         <div class="title">Фото с рукописным текстом</div>
         <div class="sub">Чей почерк, расшифровка, память начертаний</div>
@@ -280,7 +305,7 @@
 
   <details class="journey">
     <summary>
-      <span class="num">8</span>
+      <span class="num">9</span>
       <span class="summary-text">
         <div class="title">Оценка ответа и смена модели</div>
         <div class="sub">👎 → причина → wiki → список моделей по цене</div>
@@ -300,7 +325,7 @@
 
   <details class="journey">
     <summary>
-      <span class="num">9</span>
+      <span class="num">10</span>
       <span class="summary-text">
         <div class="title">Дизамбигуация персоны</div>
         <div class="sub">Сквозной под-сценарий слоя 2 — раскрыт отдельно</div>
@@ -321,7 +346,7 @@
 </main>
 
 <footer>
-  Второй мозг · CJM v1 · см. <a href="./ТЗ.md">ТЗ.md</a> и <a href="./Promts/README.md">Promts/</a> ·
+  Второй мозг · CJM v1.1 (добавлен сценарий 2 — чтение всей истории источника) · см. <a href="./ТЗ.md">ТЗ.md</a> и <a href="./Promts/README.md">Promts/</a> ·
   сгенерировано по issue <a href="https://github.com/dansury/second_brain/issues/1">#1</a>
 </footer>
 

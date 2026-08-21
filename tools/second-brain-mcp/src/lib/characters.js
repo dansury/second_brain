@@ -1,14 +1,14 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { VAULT_PATH, personSlug, personFilePath, isoDate } from "./paths.js";
+import { vaultPath, personSlug, personFilePath, isoDate } from "./paths.js";
 import { parseFrontmatter, stringifyFrontmatter } from "./frontmatter.js";
 import { stringSimilarity, clamp01 } from "./similarity.js";
 
-const PEOPLE_DIR = path.join(VAULT_PATH, "People");
+const peopleDir = () => vaultPath("People");
 
 async function listPersonFiles() {
   try {
-    const files = await fs.readdir(PEOPLE_DIR);
+    const files = await fs.readdir(peopleDir());
     return files.filter((f) => f.endsWith(".md"));
   } catch (err) {
     if (err.code === "ENOENT") return [];
@@ -17,7 +17,7 @@ async function listPersonFiles() {
 }
 
 async function readPerson(fileName) {
-  const filePath = path.join(PEOPLE_DIR, fileName);
+  const filePath = path.join(peopleDir(), fileName);
   const raw = await fs.readFile(filePath, "utf8");
   const { frontmatter, body } = parseFrontmatter(raw);
   return { fileName, filePath, frontmatter, body };

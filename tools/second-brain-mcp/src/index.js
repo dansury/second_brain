@@ -9,6 +9,7 @@ import { setDecisionOutcome, DECISION_STATUSES } from "./lib/decisions.js";
 import { recordFeedback } from "./lib/feedback.js";
 import { listModelsByPrice } from "./lib/models.js";
 import { rememberHandwriting, getHandwritingProfile } from "./lib/handwriting.js";
+import { importChatHistory, importChatHistoryFile, historyImportStatus } from "./lib/history.js";
 import { FOLDERS } from "./lib/paths.js";
 
 const server = new McpServer({ name: "second-brain", version: "0.1.0" });
@@ -93,6 +94,58 @@ server.tool(
   "Список моделей провайдера по возрастанию цены за промпт-токен — для 👎-флоу слоя 9.",
   { provider: z.enum(["openrouter", "yandex"]).optional().default("openrouter") },
   async ({ provider }) => asJsonResult(await listModelsByPrice({ provider }))
+);
+
+server.tool(
+  "import_chat_history",
+  "Импортировать ВСЮ прошлую историю канала/группы в vault (слой 10), а не только новые сообщения: " +
+    "Telegram Bot API историю не отдаёт, поэтому посты берутся с публичного превью t.me/s/<username> " +
+    "с пагинацией. Идемпотентно: повторный вызов не дублирует уже импортированное. " +
+    "Приватный канал/группа без превью → import_chat_history_file. См. Promts/10_history_import.md.",
+  {
+    chat: z.string().describe("@username, t.me/username или голый username канала/группы"),
+    limit: z
+      .number()
+      .int()
+      .nonnegative()
+      .optional()
+      .default(0)
+      .describe("Максимум постов (0 — вся доступная история, по умолчанию)"),
+    since_id: z
+      .number()
+      .int()
+      .nonnegative()
+      .optional()
+      .default(0)
+      .describe("Импортировать только сообщения новее этого id (докачка; max_msg_id из прошлого ответа)"),
+    dry_run: z.boolean().optional().default(false).describe("Только посчитать, не писать в vault"),
+  },
+  async ({ chat, limit, since_id, dry_run }) =>
+    asJsonResult(await importChatHistory({ chat, limit, sinceId: since_id, dryRun: dry_run }))
+);
+
+server.tool(
+  "import_chat_history_file",
+  "Импортировать историю из JSON-экспорта Telegram Desktop (Настройки → Экспорт данных → формат JSON). " +
+    "Путь для приватных каналов, групп и «Избранного», у которых нет публичного превью t.me/s. " +
+    "Идемпотентен так же, как import_chat_history.",
+  {
+    file: z.string().describe("Путь к result.json (или к папке экспорта) внутри контейнера"),
+    chat: z.string().optional().describe("Метка чата в состоянии импорта; по умолчанию — name из экспорта"),
+    limit: z.number().int().nonnegative().optional().default(0),
+    since_id: z.number().int().nonnegative().optional().default(0),
+    dry_run: z.boolean().optional().default(false),
+  },
+  async ({ file, chat, limit, since_id, dry_run }) =>
+    asJsonResult(await importChatHistoryFile({ file, chat, limit, sinceId: since_id, dryRun: dry_run }))
+);
+
+server.tool(
+  "history_import_status",
+  "Что уже импортировано из истории чатов: сколько сообщений, диапазон id, когда был последний прогон. " +
+    "Слой 10 — перед повторным импортом и для докачки (since_id = max_msg_id).",
+  { chat: z.string().optional().describe("@username/метка чата; без него — все чаты") },
+  async ({ chat }) => asJsonResult(await historyImportStatus({ chat }))
 );
 
 server.tool(

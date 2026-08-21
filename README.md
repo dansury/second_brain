@@ -23,7 +23,7 @@ Telegram-бот — личный «второй мозг» на связке т�
 | [**hermes-agent**](https://github.com/NousResearch/hermes-agent) | Ядро агента и Telegram-шлюз. LLM через OpenRouter. | Базовый образ `nousresearch/hermes-agent`, запуск `gateway run` |
 | [**gbrain**](https://github.com/garrytan/gbrain) | Долговременная память (семантический поиск по заметкам/фактам). | MCP-сервер `gbrain serve`; эмбеддинги — Yandex Cloud |
 | [**Grafify**](https://github.com/LuaAccess/Grafify) | Граф знаний по коду (включён). | MCP-сервер `graphify.serve` + скилл `/graphify` для Claude Code |
-| **second-brain-mcp** (`tools/second-brain-mcp/`) | Дневник-консультант: персоны, Obsidian-vault, feedback, модели по цене. См. [`ТЗ.md`](./ТЗ.md). | MCP-сервер `second-brain`; промт слоёв — `Promts/*.md` → `SOUL.md` |
+| **second-brain-mcp** (`tools/second-brain-mcp/`) | Дневник-консультант: персоны, Obsidian-vault, feedback, модели по цене, импорт всей истории канала/группы. См. [`ТЗ.md`](./ТЗ.md). | MCP-сервер `second-brain`; промт слоёв — `Promts/*.md` → `SOUL.md` |
 
 ```
 Telegram ──> hermes-agent (Telegram gateway)
@@ -148,9 +148,25 @@ docker compose up --build    # бот поднимется в режиме long 
 по решениям → lint) и складывает в Obsidian-vault (`VAULT_PATH`,
 `/opt/data/vault` по умолчанию). Реализация — MCP-сервер
 `tools/second-brain-mcp/` (инструменты: персоны, запись в vault, feedback,
-список моделей по цене) + `Promts/*.md`, которые `docker/entrypoint.sh`
+список моделей по цене, импорт истории источника) + `Promts/*.md`,
+которые `docker/entrypoint.sh`
 собирает в `$HERMES_HOME/SOUL.md` при каждом старте (это единственная
 поддерживаемая hermes точка кастомной идентичности агента — см. ТЗ §9).
+
+### Вся история канала/группы, а не только новые сообщения
+
+При подключении источника бот вычитывает **всю его прошлую историю** (ТЗ §4.1,
+слой 10) — Telegram Bot API истории не отдаёт, поэтому:
+
+- публичный канал/группа — с веб-превью `https://t.me/s/<username>`
+  (инструмент `import_chat_history`, пагинация `?before=`, весь архив);
+- приватный канал/группа/«Избранное» — из JSON-выгрузки Telegram Desktop
+  (`import_chat_history_file`), о которой бот просит сам.
+
+Записи ложатся в `Journal/` датами оригинальных сообщений, со ссылкой на
+оригинал; повторный импорт дублей не создаёт, догрузка идёт по `since_id`
+из `history_import_status`. Тот же приём, что в GrowthProducer — MTProto-клиент
+и вторая Telegram-сессия не нужны.
 
 Состояние vault-а: `scripts/vault.sh status` / `backup` / `reset` (по
 аналогии с `scripts/memory.sh` для gbrain).
@@ -205,7 +221,7 @@ make graph                        # пересобрать graphify-out/graph.js
 | `env.example` | Все переменные с комментариями |
 | `config/hermes/config.example.yaml` | Как выглядит итоговый конфиг hermes |
 | `ТЗ.md`, `CJM.html`, `Promts/` | Спецификация дневника-консультанта, пользовательские сценарии, промты слоёв |
-| `tools/second-brain-mcp/` | MCP-сервер: персоны, vault, feedback, модели по цене (см. `ТЗ.md` §10.1) |
+| `tools/second-brain-mcp/` | MCP-сервер: персоны, vault, feedback, модели по цене, импорт истории источника (см. `ТЗ.md` §10.1) |
 | `scripts/vault.sh` | Статус/бэкап/сброс Obsidian-vault-а |
 | `.github/workflows/build.yml` | CI: фактическая сборка образа на пуш/PR |
 | `scripts/build-graph.sh`, `Makefile` | Утилиты (граф Grafify и пр.) |
