@@ -2,13 +2,15 @@
   "name": "second-brain-mcp",
   "version": "0.1.0",
   "private": true,
-  "description": "MCP-сервер слоёв 2,4c,4f,7-9 конвейера second_brain: персоны, запись в Obsidian-vault, исходы решений, feedback, список моделей по цене.",
+  "description": "MCP-сервер слоёв 2,4c,4f,7-9 конвейера second_brain: персоны, запись в Obsidian-vault, исходы решений, feedback, выбор модели (топ бесплатных OpenRouter, цена вызова, политика слоёв).",
   "type": "module",
   "bin": {
     "second-brain-mcp": "./src/index.js"
   },
   "scripts": {
-    "start": "bun run src/index.js"
+    "start": "bun run src/index.js",
+    "test": "bun test",
+    "smoke": "bun run scripts/smoke-list-tools.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
