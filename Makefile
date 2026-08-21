@@ -1,5 +1,5 @@
 # second_brain — удобные команды
-.PHONY: help env build up down logs shell graph memory-status memory-clear
+.PHONY: help env build up down logs shell graph test memory-status memory-clear
 
 help:
 	@echo "make env    — создать .env из env.example"
@@ -9,6 +9,7 @@ help:
 	@echo "make logs   — логи бота"
 	@echo "make shell  — shell внутри контейнера"
 	@echo "make graph  — построить граф Grafify по репозиторию"
+	@echo "make test   — тесты MCP-сервера (bun) + smoke-проверка списка инструментов"
 	@echo "make memory-status — состояние памяти gbrain (в контейнере)"
 	@echo "make memory-clear  — полностью очистить память gbrain (в контейнере)"
 
@@ -32,6 +33,9 @@ shell:
 
 graph:
 	bash scripts/build-graph.sh .
+
+test:
+	cd tools/second-brain-mcp && bun install && bun test && bun run scripts/smoke-list-tools.mjs
 
 memory-status:
 	docker compose exec bot bash /opt/second_brain/scripts/memory.sh status

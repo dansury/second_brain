@@ -12,6 +12,8 @@ Telegram-бот — личный «второй мозг» на связке т�
 | [ТЗ.md](./ТЗ.md) | Технический слой: конвейер слоёв 0–9, Obsidian-vault, MCP-инструменты, дорожная карта |
 | [CJM.html](./CJM.html) | Карта пути пользователя — приложение к ТЗ (вертикальная, раскрываемая, читается с телефона) |
 | [Promts/](./Promts) | Промты слоёв анализа — собираются в `SOUL.md` при старте контейнера |
+| [TODO.md](./TODO.md) · [DONE.md](./DONE.md) · [DEV_PLAN.md](./DEV_PLAN.md) | Незакрытые задачи · журнал сделанного · порядок фаз, зависимости и блокеры |
+| [CLAUDE.md](./CLAUDE.md) | Порядок работы над репозиторием (doc-driven, дисциплина TODO↔DONE, тесты) |
 
 Скиллы BMAD-METHOD (`bmad-prd`, `bmad-architecture`) установлены в
 `.claude/skills/` — Claude Code использует их при создании/правке этих документов.
@@ -23,7 +25,7 @@ Telegram-бот — личный «второй мозг» на связке т�
 | [**hermes-agent**](https://github.com/NousResearch/hermes-agent) | Ядро агента и Telegram-шлюз. LLM через OpenRouter. | Базовый образ `nousresearch/hermes-agent`, запуск `gateway run` |
 | [**gbrain**](https://github.com/garrytan/gbrain) | Долговременная память (семантический поиск по заметкам/фактам). | MCP-сервер `gbrain serve`; эмбеддинги — Yandex Cloud |
 | [**Grafify**](https://github.com/LuaAccess/Grafify) | Граф знаний по коду (включён). | MCP-сервер `graphify.serve` + скилл `/graphify` для Claude Code |
-| **second-brain-mcp** (`tools/second-brain-mcp/`) | Дневник-консультант: персоны, Obsidian-vault, feedback, модели по цене, импорт всей истории канала/группы. См. [`ТЗ.md`](./ТЗ.md). | MCP-сервер `second-brain`; промт слоёв — `Promts/*.md` → `SOUL.md` |
+| **second-brain-mcp** (`tools/second-brain-mcp/`) | Дневник-консультант: персоны, Obsidian-vault, feedback, выбор модели (топ бесплатных, цена вызова, политика слоёв), импорт всей истории канала/группы. См. [`ТЗ.md`](./ТЗ.md). | MCP-сервер `second-brain`; промт слоёв — `Promts/*.md` → `SOUL.md` |
 
 ```
 Telegram ──> hermes-agent (Telegram gateway)
@@ -78,10 +80,35 @@ Telegram ──> hermes-agent (Telegram gateway)
 роутер срабатывает автоматически **до** них.
 
 Включено **по умолчанию** (`SMART_ROUTING_ENABLED=true`); тир-модели —
-`SMART_ROUTING_*` (см. `env.example`), по умолчанию `cheap=gemini-3-flash`,
-остальные = `LLM_MODEL`. Отключение — `SMART_ROUTING_ENABLED=false`. Entrypoint
-пишет блок `smart_model_routing` в `config.yaml`; плагин ставится в образ
-(`Dockerfile`, установка терпима к сбою).
+`SMART_ROUTING_*` (см. `env.example`). `cheap` по умолчанию = **топ-1
+бесплатная модель OpenRouter** (см. следующий раздел), фолбэк
+`gemini-3-flash`; остальные тиры = `LLM_MODEL`. Отключение —
+`SMART_ROUTING_ENABLED=false`. Entrypoint пишет блок `smart_model_routing` в
+`config.yaml`; плагин ставится в образ (`Dockerfile`, установка терпима к сбою).
+
+### Топ бесплатных моделей OpenRouter
+
+Каталог бесплатных моделей — порт слоя выбора модели из GrowthProducer
+(`src/llm/free_catalog.py`, `slot_policy.py`, `cost.py`) в `second-brain-mcp`.
+Источник истины — сам каталог OpenRouter (модели с нулевой ценой: туда и
+полетит запрос), рейтинг [shir-man](https://shir-man.com/api/free-llm/top-models)
+даёт порядок и суточные квоты. Кэш на томе, обновление раз в 24 ч, fail-soft:
+сеть недоступна → берётся протухший кэш, а не падение.
+
+Где используется:
+
+| Место | Что делает |
+|---|---|
+| `smart_model_routing`, тир `cheap` | Короткая заметка уходит на бесплатную модель, а не на дешёвую платную (`FREE_MODELS_ENABLED=true`) |
+| MCP `list_free_models` | «Переключи меня на бесплатную» в 👎-флоу слоя 9; `modalities: ["image"]` — только модели с картинками (слои 6–7) |
+| MCP `list_models_by_price` | Весь каталог по возрастанию цены; бесплатные помечены `isFree` и идут первыми, `freeOnly: true` оставляет только их |
+| MCP `recommend_model_for_layer` | Некритичные слои конвейера (роутер, чистка расшифровки, NER, классификация, lint) → бесплатная; критичные (риски, прецеденты, прогноз, синтез, почерк) → платная. Политика — `config/layer_policy.json` |
+| MCP `estimate_model_cost` | Оценка вызова в USD и рублях (курс — `config/fx.json`) + готовая карточка цены перед переключением на платную |
+
+Критичность слоёв правится в `config/layer_policy.json` без правки кода:
+`criticality` (`critical` / `non_critical`), `expected_out_tokens` (бюджет
+ответа для оценки цены), `requires` (`image` / `file` — какие модальности
+обязана поддерживать модель).
 
 > Второй репозиторий, [hermes-agent-skills](https://github.com/zad111ak-ai/hermes-agent-skills),
 > **намеренно не подключён**: его мета-скиллы уже покрыты стеком —
@@ -96,6 +123,7 @@ Telegram ──> hermes-agent (Telegram gateway)
 | Процесс | Как выбрать модель/провайдера |
 |---|---|
 | Основной агент | `/model` в Telegram (интерактивно) или `LLM_MODEL` / `LLM_PROVIDER` |
+| Слои конвейера | `config/layer_policy.json` (критичность) + `recommend_model_for_layer` |
 | Суммаризатор авто-сжатия | `LLM_SUMMARY_MODEL` / `LLM_SUMMARY_PROVIDER` (env → `auxiliary.compression`) |
 | Эмбеддинги памяти (gbrain) | `GBRAIN_EMBEDDING_PROVIDER` + `YANDEX_EMBEDDING_MODEL` |
 | Голос STT/TTS | Yandex SpeechKit (`YANDEX_STT_LANG`, `YANDEX_TTS_VOICE`) |
