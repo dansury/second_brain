@@ -245,3 +245,13 @@ describe("cost", () => {
     expect(estimate.warnings).not.toContain("prompt_tokens_default");
   });
 });
+
+describe("cost when the catalog is unreachable", () => {
+  test("does not claim a paid model is free — card says the price is unknown", async () => {
+    const down = async () => ({ ok: false, status: 503, json: async () => ({}) });
+    const estimate = await estimateCost({ model: "anthropic/claude-opus-4.6", fetchImpl: down });
+    expect(estimate.priceUnknown).toBe(true);
+    expect(renderCostCard(estimate)).toContain("неизвестна");
+    expect(renderCostCard(estimate)).not.toContain("$0.0000");
+  });
+});

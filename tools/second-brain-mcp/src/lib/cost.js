@@ -87,6 +87,9 @@ export async function estimateCost({
     inPrice = worst?.promptPricePerMTok ?? 0;
     outPrice = worst?.completionPricePerMTok ?? 0;
     warnings.push(`unknown_model:${model}`);
+    // Каталога нет вовсе — считать не по чему. Нулевая цена в карточке была бы
+    // хуже честного «не знаю»: пользователь решит, что вызов бесплатный.
+    if (!worst) warnings.push("price_unknown");
   }
 
   let inTokens = promptTokens;
@@ -118,12 +121,19 @@ export async function estimateCost({
     totalRub: Number((totalUsd * fx.usdRub).toFixed(4)),
     fxUsdRub: fx.usdRub,
     fxUpdated: fx.updated,
+    priceUnknown: warnings.includes("price_unknown"),
     warnings,
   };
 }
 
 /** Человекочитаемая карточка — её бот показывает перед платным вызовом. */
 export function renderCostCard(estimate) {
+  if (estimate.priceUnknown) {
+    return (
+      `⚠️ Цена модели ${estimate.model} неизвестна — каталог OpenRouter сейчас недоступен.\n` +
+      "Переключаться вслепую не стоит: повторите позже или выберите модель из последнего списка."
+    );
+  }
   if (estimate.tier === "free") {
     return (
       `🆓 Бесплатная модель: ${estimate.model}\n` +
