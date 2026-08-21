@@ -7,7 +7,8 @@ import { lookupCharacter, upsertCharacter } from "./lib/characters.js";
 import { writeEntry, searchVault } from "./lib/entries.js";
 import { setDecisionOutcome, DECISION_STATUSES } from "./lib/decisions.js";
 import { recordFeedback } from "./lib/feedback.js";
-import { listModelsByPrice } from "./lib/models.js";
+import { listModelsByPrice, listFreeModels, recommendModelForLayer } from "./lib/models.js";
+import { estimateCost, renderCostCard } from "./lib/cost.js";
 import { rememberHandwriting, getHandwritingProfile } from "./lib/handwriting.js";
 import { importChatHistory, importChatHistoryFile, historyImportStatus } from "./lib/history.js";
 import { FOLDERS } from "./lib/paths.js";
@@ -91,9 +92,50 @@ server.tool(
 
 server.tool(
   "list_models_by_price",
-  "Список моделей провайдера по возрастанию цены за промпт-токен — для 👎-флоу слоя 9.",
-  { provider: z.enum(["openrouter", "yandex"]).optional().default("openrouter") },
-  async ({ provider }) => asJsonResult(await listModelsByPrice({ provider }))
+  "Список моделей провайдера по возрастанию цены за промпт-токен — для 👎-флоу слоя 9. " +
+    "Бесплатные (isFree) идут первыми; freeOnly=true оставляет только их.",
+  {
+    provider: z.enum(["openrouter", "yandex"]).optional().default("openrouter"),
+    limit: z.number().int().positive().max(100).optional().default(15),
+    freeOnly: z.boolean().optional().default(false),
+  },
+  async (args) => asJsonResult(await listModelsByPrice(args))
+);
+
+server.tool(
+  "list_free_models",
+  "Топ БЕСПЛАТНЫХ моделей OpenRouter (цена $0), отранжированных рейтингом shir-man и суточной квотой. " +
+    "Основной ответ на «переключи на бесплатную» в слое 9. modalities=[\"image\"] — только модели с картинками (слои 06/07).",
+  {
+    limit: z.number().int().positive().max(50).optional().default(10),
+    modalities: z.array(z.enum(["text", "image", "file"])).optional().default([]),
+  },
+  async (args) => asJsonResult(await listFreeModels(args))
+);
+
+server.tool(
+  "recommend_model_for_layer",
+  "Какую модель брать на слой конвейера: некритичные слои (роутер, чистка расшифровки, NER, lint) → " +
+    "топ-1 бесплатная OpenRouter, критичные (риски, прецеденты, прогноз, синтез, почерк) → платный дефолт. " +
+    "Политика — config/layer_policy.json.",
+  { layer: z.string().describe('Имя слоя, напр. "04c_precedents" или короткое "04c"') },
+  async (args) => asJsonResult(await recommendModelForLayer(args))
+);
+
+server.tool(
+  "estimate_model_cost",
+  "Оценка стоимости одного вызова модели в USD и рублях (курс — config/fx.json) + готовая карточка цены. " +
+    "Показывать перед переключением на платную модель.",
+  {
+    model: z.string(),
+    layer: z.string().optional().describe("Слой — из него берётся ожидаемый размер ответа"),
+    promptTokens: z.number().int().nonnegative().optional(),
+    promptText: z.string().optional().describe("Альтернатива promptTokens: посчитаем ~4 символа/токен"),
+  },
+  async (args) => {
+    const estimate = await estimateCost({ ...args, promptTokens: args.promptTokens ?? null, promptText: args.promptText ?? null });
+    return asJsonResult({ ...estimate, card: renderCostCard(estimate) });
+  }
 );
 
 server.tool(

@@ -1,0 +1,59 @@
+name: CI
+
+# Тесты MCP-сервера и валидация shell-скриптов. Отдельно от build.yml: тот
+# собирает docker-образ и триггерится только на Dockerfile/docker/speechkit,
+# из-за чего правки в tools/ и scripts/ до сих пор шли без единой проверки.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  mcp-tests:
+    name: second-brain-mcp (bun test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/second-brain-mcp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Unit tests
+        run: bun test
+
+      - name: Smoke — MCP handshake and tool list
+        run: bun run scripts/smoke-list-tools.mjs
+
+  shell-and-config:
+    name: Shell syntax + JSON configs
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate shell scripts
+        run: |
+          bash -n docker/entrypoint.sh
+          bash -n scripts/setup_session.sh
+          bash -n scripts/build-graph.sh
+          bash -n scripts/memory.sh
+          bash -n scripts/vault.sh
+          bash -n speechkit/yc_stt.sh
+          bash -n speechkit/yc_tts.sh
+
+      - name: Validate JSON configs
+        run: |
+          for f in config/*.json; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$f" || exit 1
+            echo "ok: $f"
+          done

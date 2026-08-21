@@ -1,0 +1,20 @@
+{
+  "paid_default": "anthropic/claude-opus-4.6",
+  "layers": {
+    "00_router":                    {"criticality": "non_critical", "expected_out_tokens": 200},
+    "01_transcription_cleanup":     {"criticality": "non_critical", "expected_out_tokens": 800},
+    "02_entity_recognition":        {"criticality": "non_critical", "expected_out_tokens": 400},
+    "03_classification":            {"criticality": "non_critical", "expected_out_tokens": 300},
+    "04a_extract_decision":         {"criticality": "non_critical", "expected_out_tokens": 500},
+    "04b_risk_factors":             {"criticality": "critical",     "expected_out_tokens": 800},
+    "04c_precedents":               {"criticality": "critical",     "expected_out_tokens": 800},
+    "04d_forecast_perspectives":    {"criticality": "critical",     "expected_out_tokens": 1200},
+    "04e_consultant_synthesis":     {"criticality": "critical",     "expected_out_tokens": 1200},
+    "04f_decision_outcome":         {"criticality": "non_critical", "expected_out_tokens": 400},
+    "05_document_intake":           {"criticality": "non_critical", "expected_out_tokens": 800, "requires": ["file"]},
+    "06_photo_people":              {"criticality": "non_critical", "expected_out_tokens": 600, "requires": ["image"]},
+    "07_handwriting":               {"criticality": "critical",     "expected_out_tokens": 900, "requires": ["image"]},
+    "08_obsidian_lint":             {"criticality": "non_critical", "expected_out_tokens": 600},
+    "09_feedback_and_model_switch": {"criticality": "non_critical", "expected_out_tokens": 300}
+  }
+}
