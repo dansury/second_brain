@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { VAULT_PATH, FOLDERS, slugify, isoDate, isoTime, toWikiLink } from "./paths.js";
+import { vaultRoot, vaultPath, FOLDERS, slugify, isoDate, isoTime, toWikiLink } from "./paths.js";
 import { parseFrontmatter, stringifyFrontmatter } from "./frontmatter.js";
 
 function assertType(type) {
@@ -11,12 +11,12 @@ function assertType(type) {
 
 function journalPath(dateISO) {
   const [y, m] = dateISO.split("-");
-  return path.join(VAULT_PATH, FOLDERS.journal, y, m, `${dateISO}.md`);
+  return vaultPath(FOLDERS.journal, y, m, `${dateISO}.md`);
 }
 
 function entryPath(type, dateISO, slugHint) {
   const slug = slugify(slugHint || "entry");
-  return path.join(VAULT_PATH, FOLDERS[type], `${dateISO}-${slug}.md`);
+  return vaultPath(FOLDERS[type], `${dateISO}-${slug}.md`);
 }
 
 function normalizeLinks(links = []) {
@@ -27,8 +27,12 @@ function normalizeLinks(links = []) {
  * Записывает структурированный результат слоёв 2-7 в vault по правилам
  * ТЗ §6/§11 (frontmatter + lint + идемпотентность). Единственная точка
  * записи в vault — см. Promts/08_obsidian_lint.md «Запреты».
+ *
+ * `time`/`heading` задают заголовок секции журнала: по умолчанию это
+ * «HH:MM — запись» текущим временем, а импорт истории (слой 10,
+ * lib/history.js) пишет постом его собственные время и ссылку.
  */
-export async function writeEntry({ type, frontmatter = {}, body = "", links = [], date }) {
+export async function writeEntry({ type, frontmatter = {}, body = "", links = [], date, time, heading }) {
   assertType(type);
   const dateISO = date || isoDate();
   const people = normalizeLinks(links.length ? links : frontmatter.people || []);
@@ -45,7 +49,7 @@ export async function writeEntry({ type, frontmatter = {}, body = "", links = []
       if (err.code !== "ENOENT") throw err;
     }
 
-    const section = `\n## ${isoTime()} — запись\n${body.trim()}\n`;
+    const section = `\n## ${time || isoTime()} — ${heading || "запись"}\n${body.trim()}\n`;
 
     if (existing) {
       const { frontmatter: existingFm, body: existingBody } = parseFrontmatter(existing);
@@ -97,7 +101,8 @@ async function walkMarkdown(dir, acc = []) {
  * gbrain (ТЗ §10.1). Используется слоем 4c для поиска прецедентов.
  */
 export async function searchVault({ query, type, status, limit = 20 }) {
-  const files = await walkMarkdown(VAULT_PATH);
+  const root = vaultRoot();
+  const files = await walkMarkdown(root);
   const q = String(query ?? "").trim().toLowerCase();
   const results = [];
 
@@ -111,7 +116,7 @@ export async function searchVault({ query, type, status, limit = 20 }) {
     if (q && !haystack.includes(q)) continue;
 
     results.push({
-      path: path.relative(VAULT_PATH, filePath),
+      path: path.relative(root, filePath),
       type: frontmatter.type,
       date: frontmatter.date,
       status: frontmatter.status,

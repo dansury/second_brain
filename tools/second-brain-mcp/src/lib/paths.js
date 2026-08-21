@@ -1,6 +1,13 @@
 import path from "node:path";
 
-export const VAULT_PATH = process.env.VAULT_PATH || "/opt/data/vault";
+/**
+ * Корень vault-а читается из окружения при каждом обращении, а не
+ * защёлкивается при импорте модуля: так путь остаётся правдой и в тестах,
+ * где несколько файлов делят один процесс, и при смене VAULT_PATH на лету.
+ */
+export function vaultRoot() {
+  return process.env.VAULT_PATH || "/opt/data/vault";
+}
 
 export const FOLDERS = {
   journal: "Journal",
@@ -29,12 +36,12 @@ export function personSlug(name, role) {
 }
 
 export function personFilePath(name, role) {
-  return path.join(VAULT_PATH, "People", `${personSlug(name, role)}.md`);
+  return vaultPath("People", `${personSlug(name, role)}.md`);
 }
 
 export function handwritingFilePath(personLabel) {
   const label = String(personLabel ?? "").replace(/^\[\[|\]\]$/g, "");
-  return path.join(VAULT_PATH, "Handwriting", `${slugify(label)}_почерк.md`);
+  return vaultPath("Handwriting", `${slugify(label)}_почерк.md`);
 }
 
 export function isoDate(d = new Date()) {
@@ -46,7 +53,7 @@ export function isoTime(d = new Date()) {
 }
 
 export function vaultPath(...segments) {
-  return path.join(VAULT_PATH, ...segments);
+  return path.join(vaultRoot(), ...segments);
 }
 
 export function toWikiLink(label) {

@@ -35,6 +35,20 @@ case "${cmd}" in
         printf '  %-12s %s заметок\n' "${folder}" "${count}"
       fi
     done
+    # Импорт истории источников (слой 10, ТЗ §4.1) — состояние идемпотентности.
+    state="${VAULT_PATH}/.state/history-import.json"
+    if [[ -f "${state}" ]]; then
+      echo ""
+      echo "Импорт истории источников:"
+      if command -v bun >/dev/null 2>&1; then
+        bun -e 'const s=require(process.argv[1]).chats||{};
+          for (const [chat, v] of Object.entries(s))
+            console.log(`  ${chat}: ${v.imported} сообщений, id до ${v.max_msg_id}, ${v.via}, прогон ${v.last_run_at}`);' \
+          "${state}"
+      else
+        echo "  (см. ${state})"
+      fi
+    fi
     ;;
 
   backup)

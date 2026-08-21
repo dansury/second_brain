@@ -1,6 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { VAULT_PATH, FOLDERS, isoDate } from "./paths.js";
+import { vaultPath, FOLDERS, isoDate } from "./paths.js";
 import { parseFrontmatter, stringifyFrontmatter } from "./frontmatter.js";
 
 export const DECISION_STATUSES = ["open", "outcome-good", "outcome-bad"];
@@ -36,7 +36,7 @@ export async function setDecisionOutcome({ ref, status, note }) {
     throw new Error(`set_decision_outcome: недопустимый status "${status}", ожидается один из: ${DECISION_STATUSES.join(", ")}`);
   }
   const rel = normalizeRef(ref);
-  const filePath = path.join(VAULT_PATH, rel);
+  const filePath = vaultPath(rel);
 
   let raw;
   try {
