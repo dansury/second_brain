@@ -10,16 +10,31 @@ on:
       - "Dockerfile"
       - "docker/**"
       - "speechkit/**"
+      - "scripts/**"
+      - "config/hermes/**"
       - ".github/workflows/build.yml"
   pull_request:
     paths:
       - "Dockerfile"
       - "docker/**"
       - "speechkit/**"
+      - "scripts/**"
+      - "config/hermes/**"
   workflow_dispatch:
 
 jobs:
+  # Версия ядра hermes закреплена по digest в config/hermes/base-image.env, а
+  # строка FROM в Dockerfile — её отражение. Если их развести руками, сборка
+  # снова поедет на произвольную версию, поэтому расхождение — ошибка сборки.
+  verify-pin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Пин базового образа совпадает с Dockerfile
+        run: scripts/hermes-update.sh verify
+
   build:
+    needs: verify-pin
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +45,10 @@ jobs:
           bash -n speechkit/yc_stt.sh
           bash -n speechkit/yc_tts.sh
           bash -n scripts/build-graph.sh
+          bash -n scripts/hermes-update.sh
+          bash -n scripts/state-snapshot.sh
+          bash -n scripts/memory.sh
+          bash -n scripts/vault.sh
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

@@ -22,7 +22,7 @@ Telegram-бот — личный «второй мозг» на связке т�
 
 | Компонент | Роль | Как подключён |
 |---|---|---|
-| [**hermes-agent**](https://github.com/NousResearch/hermes-agent) | Ядро агента и Telegram-шлюз. LLM через OpenRouter. | Базовый образ `nousresearch/hermes-agent`, запуск `gateway run` |
+| [**hermes-agent**](https://github.com/NousResearch/hermes-agent) | Ядро агента и Telegram-шлюз. LLM через OpenRouter. | Базовый образ `nousresearch/hermes-agent`, закреплён по digest (`config/hermes/base-image.env`), запуск `gateway run` |
 | [**gbrain**](https://github.com/garrytan/gbrain) | Долговременная память (семантический поиск по заметкам/фактам). | MCP-сервер `gbrain serve`; эмбеддинги — Yandex Cloud |
 | [**Grafify**](https://github.com/LuaAccess/Grafify) | Граф знаний по коду (включён). | MCP-сервер `graphify.serve` + скилл `/graphify` для Claude Code |
 | **second-brain-mcp** (`tools/second-brain-mcp/`) | Дневник-консультант: персоны, Obsidian-vault, feedback, выбор модели (топ бесплатных, цена вызова, политика слоёв), импорт всей истории канала/группы. См. [`ТЗ.md`](./ТЗ.md). | MCP-сервер `second-brain`; промт слоёв — `Promts/*.md` → `SOUL.md` |
@@ -259,6 +259,66 @@ pip install "graphifyy[mcp]"     # если ещё не установлен
 make graph                        # пересобрать graphify-out/graph.json
 ```
 
+## Обновление ядра hermes и откат
+
+Бот собран поверх образа `nousresearch/hermes-agent`. Раньше в `Dockerfile`
+стояло `FROM …:latest`, а `latest` в этом репозитории указывает на ветку `main`
+апстрима — то есть любая пересборка на amvera молча меняла версию ядра, и узнать
+«на чём мы работали вчера» было нельзя. Теперь версия закреплена по digest.
+
+**Где закреплена.** `config/hermes/base-image.env` — единственный источник
+правды. Строка `FROM` в `Dockerfile` — её отражение; если развести их руками,
+сборка падает на job `verify-pin` в CI.
+
+```bash
+make hermes-status     # что закреплено, на что откатимся, что вышло в апстриме
+make hermes-check      # есть ли новая версия (код возврата 10 = есть)
+make hermes-update     # закрепить свежую версию канала
+make hermes-rollback   # вернуть предыдущую версию
+```
+
+Канал обновлений задаётся в том же файле: `release` (теги `vГОД.МЕСЯЦ.ДЕНЬ` —
+по умолчанию) или `latest` (ветка `main` апстрима, ломается чаще).
+
+**Автоматика.** `.github/workflows/hermes-update.yml` раз в сутки спрашивает у
+Docker Hub, вышло ли новое ядро, переставляет пин, **собирает образ на новой
+версии**, прогоняет смоук-тесты (команда запуска шлюза на месте, `gbrain`/`bun`/
+graphify на месте, `config.yaml` рендерится валидным, страховка данных
+срабатывает) — и только тогда открывает PR. Обновление доезжает до прода
+мерджем этого PR, откат — его revert-ом.
+
+**Что не ломается при обновлении.** Данные живут в томе `/opt/data` и переживают
+пересборку образа: мозг `gbrain` вместе с индексом поиска, Obsidian-vault, граф,
+состояние шлюза. Образ пересобирается — том остаётся. Промты и `config.yaml`
+собираются заново при каждом старте из `Promts/` и переменных окружения, так что
+обновление ядра их не трогает.
+
+**Страховка перед сменой версии.** В образ зашита версия ядра
+(`/opt/second_brain/BASE_IMAGE`). При старте `entrypoint` сравнивает её с
+записанной в томе и, если версия сменилась, снимает состояние тома **до того,
+как новая версия впервые его тронет**. Если снимок не удался (кончилось место),
+контейнер по умолчанию не стартует — лучше упасть, чем мигрировать данные без
+возможности отката (`STATE_BACKUP_REQUIRED=false` снимает это ограничение).
+
+```bash
+make snapshots            # список снимков: когда, почему, на какой версии ядра
+make snapshot             # снять снимок прямо сейчас
+make restore ID=<id>      # восстановить состояние из снимка
+```
+
+Восстановление само сначала снимает текущее состояние (`pre-restore`), поэтому
+откат тоже обратим. Бота перед восстановлением надо остановить —
+иначе `gbrain` и шлюз будут писать в том поверх восстанавливаемых файлов.
+
+**Полный откат неудачного обновления** — две независимые операции:
+
+| Что откатываем | Как |
+|---|---|
+| Версию ядра | `make hermes-rollback` → коммит → передеплой (или revert PR) |
+| Данные | в контейнере: `state-snapshot.sh restore last` |
+
+Настройки страховки (`STATE_BACKUP_*`) — в `env.example`, раздел 7.
+
 ## Файлы репозитория
 
 | Файл | Назначение |
@@ -273,17 +333,23 @@ make graph                        # пересобрать graphify-out/graph.js
 | `ТЗ.md`, `CJM.html`, `Promts/` | Спецификация дневника-консультанта, пользовательские сценарии, промты слоёв |
 | `tools/second-brain-mcp/` | MCP-сервер: персоны, vault, feedback, модели по цене, импорт истории источника (см. `ТЗ.md` §10.1) |
 | `scripts/vault.sh` | Статус/бэкап/сброс Obsidian-vault-а |
+| `config/hermes/base-image.env` | Закреплённая версия ядра hermes (digest) + цель отката |
+| `scripts/hermes-update.sh` | Проверка/обновление/откат версии ядра, синхронизация `FROM` |
+| `scripts/state-snapshot.sh` | Снимки и откат накопленного состояния тома `/opt/data` |
+| `.github/workflows/hermes-update.yml` | Авто-проверка обновлений ядра: сборка, смоук-тесты, PR |
 | `.github/workflows/build.yml` | CI: фактическая сборка образа на пуш/PR |
 | `scripts/build-graph.sh`, `Makefile` | Утилиты (граф Grafify и пр.) |
 
 ## Сборка образа
 
-Образ собирается из `Dockerfile` (база — `nousresearch/hermes-agent:latest` +
-bun/gbrain + graphify + скрипты SpeechKit). Сборку выполняет:
+Образ собирается из `Dockerfile` (база — `nousresearch/hermes-agent`,
+закреплённая по digest в `config/hermes/base-image.env`, + bun/gbrain +
+graphify + скрипты SpeechKit). Сборку выполняет:
 
 - **CI** — `.github/workflows/build.yml` собирает образ на раннерах GitHub при
   каждом пуше/PR (у них есть доступ к Docker Hub). Это фактический прогон сборки —
-  смотрите статус в PR.
+  смотрите статус в PR. Перед сборкой job `verify-pin` проверяет, что `FROM` в
+  `Dockerfile` совпадает с закреплённой версией ядра.
 - **amvera** — собирает тот же `Dockerfile` при деплое.
 - **локально** — `docker compose up --build`.
 

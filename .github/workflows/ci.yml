@@ -46,6 +46,8 @@ jobs:
           bash -n docker/entrypoint.sh
           bash -n scripts/setup_session.sh
           bash -n scripts/build-graph.sh
+          bash -n scripts/hermes-update.sh
+          bash -n scripts/state-snapshot.sh
           bash -n scripts/memory.sh
           bash -n scripts/vault.sh
           bash -n speechkit/yc_stt.sh

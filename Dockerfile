@@ -10,7 +10,18 @@
 #
 # Ядро LLM — OpenRouter; эмбеддинги памяти — Yandex Cloud (см. env.example).
 # =============================================================================
-FROM nousresearch/hermes-agent:latest
+# >>> hermes-base-pin — управляется scripts/hermes-update.sh, вручную не править
+# Базовый образ закреплён по digest: пересборка на amvera всегда даёт ту же
+# версию ядра. Обновление и откат — scripts/hermes-update.sh (см.
+# config/hermes/base-image.env). Тег в ссылке только для читаемости, тянется
+# digest. Переопределить на одну сборку: --build-arg HERMES_BASE_REF=...
+ARG HERMES_BASE_REF=nousresearch/hermes-agent:v2026.8.19@sha256:3811ed13da874fba2ac99b6d492db9a203d34cb6dccf90d886948c00d0ccec09
+# <<< hermes-base-pin
+FROM ${HERMES_BASE_REF}
+
+# Версия ядра, зашитая в образ: entrypoint сравнивает её с записанной в томе и
+# при расхождении делает снимок накопленных данных ДО старта новой версии.
+ARG HERMES_BASE_REF
 
 USER root
 
@@ -75,6 +86,14 @@ COPY graphify-out/ /opt/second_brain/graphify-out/
 # --- Служебные скрипты (управление памятью и пр.) ---------------------------
 COPY scripts/ /opt/second_brain/scripts/
 RUN chmod +x /opt/second_brain/scripts/*.sh
+
+# --- Отпечаток версии ядра в образе -----------------------------------------
+# entrypoint читает этот файл и сравнивает с /opt/data/.second_brain/state.json.
+# Если версия сменилась — перед стартом делается снимок накопленных данных
+# (мозг gbrain, vault, конфиг), чтобы обновление можно было откатить.
+# (сам config/hermes/base-image.env уже попал в образ вместе с COPY config/ выше)
+RUN printf '%s\n' "${HERMES_BASE_REF}" > /opt/second_brain/BASE_IMAGE
+LABEL org.opencontainers.image.base.name="${HERMES_BASE_REF}"
 
 # --- Хук инициализации: собрать config.yaml из окружения до старта сервисов --
 # s6-overlay выполняет /etc/cont-init.d/* от root перед запуском gateway.
