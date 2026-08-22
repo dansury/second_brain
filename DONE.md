@@ -17,6 +17,15 @@ Append-only журнал закрытых задач: дата + одна стр
   MCP-сервера и shell/JSON (`.github/workflows/ci.yml`), `make test`,
   дисциплина `TODO.md` ↔ `DONE.md` + `DEV_PLAN.md` + скилл `/dev`.
 
+## 2026-08-22
+
+- Слито в main всё, что висело в открытых PR: пин версии ядра hermes по digest
+  (`config/hermes/base-image.env`, `scripts/hermes-update.sh`), снимки состояния
+  тома перед сменой версии (`scripts/state-snapshot.sh`), суточная
+  авто-проверка обновлений с PR (`hermes-update.yml`).
+- `README.md`: витрина продукта в начале — что бот делает словами владельца,
+  пример диалога, честная таблица «что уже работает / что по плану».
+
 ## Ранее (по истории git)
 
 - M1 — базовый конвейер и vault: слои 0–3, 8, 9, `second-brain-mcp`, персоны,
